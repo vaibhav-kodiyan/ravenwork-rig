@@ -37,7 +37,7 @@ engine and the verifier read, so nothing downstream re-branches on "PR vs local"
       **Done when:** a fresh clone shows neither path as untracked noise.
 
 ## Phase 1 — Harness scripts (`scripts/`, from scratch; later tests depend on these)
-- [ ] **1.1 `scripts/pr-context.sh`** — `set -euo pipefail`. Arg1 = PR URL or empty.
+- [x] **1.1 `scripts/pr-context.sh`** — `set -euo pipefail`. Arg1 = PR URL or empty.
       - PR path: parse `owner/repo/<n>`, `git fetch origin pull/<n>/head`, base = PR base branch.
       - Bare path: HEAD = current branch, base = `git merge-base` vs repo default branch;
         **refuse a dirty tree** (`git status --porcelain` non-empty → print `commit first`,
