@@ -54,7 +54,7 @@ engine and the verifier read, so nothing downstream re-branches on "PR vs local"
       reads `$REPORT`, never hardcodes a report name.
       **Done when:** passes with exactly the one report present; fails on moved HEAD, staged
       index, new stash, extra stray file, or missing report.
-- [ ] **1.3 `scripts/finalize-review.sh`** — `set -euo pipefail`. Run `verify-net-zero.sh`
+- [x] **1.3 `scripts/finalize-review.sh`** — `set -euo pipefail`. Run `verify-net-zero.sh`
       (propagate non-zero), then `git worktree remove --force .pr-review/worktree` and clean
       `.pr-review/`.
       **Done when:** exits non-zero if the gate fails; on success the worktree and `.pr-review/`
