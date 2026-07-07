@@ -61,13 +61,13 @@ engine and the verifier read, so nothing downstream re-branches on "PR vs local"
       are gone.
 
 ## Phase 2 — Doctrine generator + backstop
-- [ ] **2.1 `scripts/build-review-doctrine.js`** — read the `## The ladder` section of
+- [x] **2.1 `scripts/build-review-doctrine.js`** — read the `## The ladder` section of
       `skills/ponytail/SKILL.md` (heading → next `## `) and inject it verbatim between
       `<!-- BEGIN GENERATED LADDER -->` / `<!-- END GENERATED LADDER -->` markers in
       `skills/ponytail-review/SKILL.md`. `require.main` block writes the file; module exports
       the derive fn. Same generate-then-verify shape as `build-openclaw-skills.js`.
       **Done when:** running it fills the marker block; the exported fn returns the same text.
-- [ ] **2.2 `tests/review-doctrine.test.js`** — re-derive via the exported fn; assert the
+- [x] **2.2 `tests/review-doctrine.test.js`** — re-derive via the exported fn; assert the
       committed block byte-matches (staleness backstop, like `openclaw-skills.test.js`).
 
 ## Phase 3 — Canonical skill rewrite (`skills/ponytail-review/SKILL.md`)
