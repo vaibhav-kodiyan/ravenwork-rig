@@ -31,7 +31,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test tests/*.test.js && npm test --prefix pi-extension"
+    "setup:dev": "python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt",
+    "test": "PATH=.venv/bin:$PATH node --test tests/*.test.js && npm test --prefix pi-extension"
   },
   "pi": {
     "extensions": ["./pi-extension/index.js"],
