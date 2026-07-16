@@ -1,12 +1,13 @@
-# The Harness — Foundational Design (initial plan)
+# Rig — Foundational Design (initial plan)
 
 Initial plan doc. Consolidated 2026-07-15 from the office-hours design doc + decisions log.
+The product identity is Rig; older source paths may still use "harness" as historical context.
 This tracked file is the source of truth; scratch mirrors live at
 `.context/harness-decisions.md` and
 `~/.gstack/projects/vaibhav-kodiyan-ponytail-pr-review-harness/winmore-consolidate-agentic-tools-harness-design-20260715-224342.md`.
 Branch: `consolidate-agentic-tools-harness`
 Repo: vaibhav-kodiyan/ponytail-pr-review-harness
-Status: DECISIONS LOCKED (13), 3 OPEN — next: `/plan-eng-review` on the manifest schema (Open #2)
+Status: DECISIONS LOCKED (13), 3 OPEN — next: Tier 1 bootstrap scope; manifest/materializer starts in Tier 2
 
 ---
 
@@ -48,8 +49,9 @@ with a way to grow new capabilities on demand.
   Codex, OpenCode, Windsurf, Cline, Kiro, etc. Reuses ponytail's fan-out machinery.
 - **Secrets never committed.** Runtime tiers take keys via gitignored `.env`; installer
   generates `.env.example` with blank placeholders; keys stay local. Non-negotiable.
-- **Reproducible.** The manifest pins a version so an install is repeatable.
-- **Clean target repos.** Materialized host-adapter files can be gitignored.
+- **Reproducible.** Tier 1 pins the bootstrap/source ref; Tier 2+ manifests pin a
+  version so an install is repeatable.
+- **Clean target repos.** Tier 2 materialized host-adapter files can be gitignored.
 - **No philosophy whiplash.** The bundled ruleset must be internally coherent (see #9).
 
 ## Premises (agreed)
@@ -66,21 +68,25 @@ with a way to grow new capabilities on demand.
 
 ## Decided (13)
 
-1. **Delivery model = C** — committed bootstrap (`.sh` + manifest, version-pinned) in
-   the target repo, materializing host adapters from a single source of truth (this repo
-   as release/git ref). Rejected: A (copy-in, drifts + bloats), B (symlink to `~/`, fails
-   for strangers who clone).
+1. **Delivery model = C** — committed bootstrap in the target repo, pulling host
+   adapters from a single source of truth (this repo as release/git ref). Tier 2 adds
+   the committed manifest and materializer. Rejected: A (copy-in, drifts + bloats), B
+   (symlink to `~/`, fails for strangers who clone).
 2. **Install UX = à-la-carte spectrum**, not fixed bundles:
    `raw rules (.md) → recipes that build on invoke → fully-wired runtime with keys`.
-   - Tier 1: markdown harnesses only (rules + skills + host adapters), no keys/runtime.
-   - Middle band: recipes / lazy materialization — ship the recipe, not the running
+   - Tier 1: markdown harnesses only (rules + skills + host adapters), no keys/runtime,
+     no materializer implementation. It may preserve manifest-shaped naming/selection
+     language in docs only so Tier 2 has a clean landing zone.
+   - Middle band: recipes / lazy execution — ship the recipe, not the running
      workflow; nothing executes until invoked. Home for the Layer 2 generator.
-   - Tier 2: wired agentic workflows, user keys via gitignored `.env`.
+   - Tier 2: wired agentic workflows, user keys via gitignored `.env`, plus the first
+     real manifest format + materializer implementation.
    - Tier 3: harness generator (Layer 2).
-3. **Manifest = a list of decisions, not files.** It records the selection; the
-   materializer reads it and lays down exactly those files per host.
-4. **Spine = manifest + materializer.** Build once, use three times (Tier 1 now, Tiers
-   2/3 later, Tier 3 generator emits into the same materializer).
+3. **Manifest = a list of decisions, not files (Tier 2+).** It records the selection;
+   the materializer reads it and lays down exactly those files per host.
+4. **Spine = manifest + materializer, implemented in Tier 2.** Tier 1 stays a minimal
+   bootstrap; Tier 2 builds the spine once; Tier 3 generator later emits into the same
+   materializer.
 5. **Curation = one best-of-breed per intent, scoped by phase** (do NOT concatenate):
    - Intent / feature doc → grilling (mattpocock)
    - Product / foundational design → gstack
@@ -93,8 +99,10 @@ with a way to grow new capabilities on demand.
    Y" claims baked in.
 7. **Secrets never committed** — any runtime tier takes keys via gitignored `.env`;
    installer generates `.env.example` with blank placeholders and states keys stay local.
-8. **First shippable slice = Tier 1** (installer skeleton + manifest format +
-   materializer), dogfooded on ponytail's own rule/skill/adapter files.
+8. **First shippable slice = Tier 1** (minimal bootstrap over ponytail's existing
+   fan-out + adapters), dogfooded on ponytail's own rule/skill/adapter files. No
+   manifest parser, materializer, idempotent sync/check, or schema-hardening work belongs
+   in Tier 1.
 9. **North-star philosophy = artifact-scoped completeness/minimalism.** Be COMPLETE
    about what you build (intent, scope, edge cases → grilling/gstack/superpowers boil the
    ocean), MINIMAL about how you touch the code (least blast radius, fewest new breakable
@@ -196,8 +204,9 @@ characterization pass (#6) before they can ship honestly.
 
 ## Success criteria
 
-- Tier 1 end-to-end works in a fresh test repo across at least 2 hosts.
-- Manifest fully describes an install; re-running the materializer is idempotent.
+- Tier 1 end-to-end works in a fresh test repo across at least 2 hosts via the minimal
+  bootstrap, with no materializer implementation.
+- Tier 2 manifest fully describes an install; re-running the materializer is idempotent.
 - Secrets never land in git; `.env.example` generated, `.env` gitignored.
 - Bundled ruleset is internally coherent (passes the #9 north-star check).
 - Each grafted skill traces every check back to a source framework (provenance).
@@ -206,10 +215,11 @@ characterization pass (#6) before they can ship honestly.
 ## Distribution
 
 The harness distributes itself: the source-of-truth repo publishes pinned releases (git
-ref or GitHub Release); target repos commit only the small bootstrap + manifest and pull
-the rest at install time. CI on the source repo builds/validates the materializer and the
-host-adapter set (extend ponytail's existing `check-rule-copies.js` / test suite to cover
-the manifest and materialized output — this is also the anti-drift `check` command of #10).
+ref or GitHub Release). Tier 1 target repos commit only the small bootstrap and pull the
+markdown harness/adapters at install time. Tier 2 target repos add the manifest; CI on
+the source repo builds/validates the materializer and the host-adapter set (extend
+ponytail's existing `check-rule-copies.js` / test suite to cover the manifest and
+materialized output — this is also the anti-drift `check` command of #10).
 
 ## Dependencies
 
@@ -219,14 +229,16 @@ the manifest and materialized output — this is also the anti-drift `check` com
 
 ## Next steps
 
-1. `/plan-eng-review` to lock the manifest schema + materializer contract against the
-   6-point bar in Open #2 — before any code.
-2. Build the Tier 1 slice: installer skeleton + manifest format + materializer, dogfooded
-   on ponytail's own files. Deliverable: fresh repo, `clone → run installer → pick Tier 1
-   → agent shows up configured`, across ≥2 hosts.
+1. Lock the Tier 1 bootstrap boundary: no manifest parser, no materializer, no sync/check
+   command. Keep only enough manifest-shaped vocabulary in docs to avoid a Tier 2 retrofit.
+2. Build the Tier 1 slice: installer skeleton over ponytail's existing fan-out/adapters,
+   dogfooded on ponytail's own files. Deliverable: fresh repo, `clone → run installer →
+   pick Tier 1 → agent shows up configured`, across ≥2 hosts.
 3. Run the graft characterization pass, one category at a time (debug → tdd → review),
    producing a diff table before authoring each merged skill.
-4. First recipe after Tier 1: the ETL self-verify loop (#11).
+4. Tier 2 starts with `/plan-eng-review` to lock the manifest schema + materializer
+   contract against the 6-point bar in Open #2, then implements the materializer.
+5. First recipe after Tier 1: the ETL self-verify loop (#11).
 
 ## What I noticed about how you think
 
