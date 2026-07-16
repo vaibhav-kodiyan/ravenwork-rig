@@ -1,20 +1,32 @@
 # Agent Portability
 
-Ponytail is an agent-portable skill distribution. The skills in `skills/` hold
-the core behavior; host-specific files are adapters that make that behavior easy
-to load in a given agent.
+## Rig
 
-## Harness Bootstrap
+Rig is a separate project from Ponytail. It inherits only selected pieces —
+notably the Ponytail implementation skill and always-on implementation rule —
+not Ponytail's full plugin distribution, hooks, commands, or companion skills
+(`ponytail-review`, `ponytail-audit`, and the rest).
 
-`harness/manifest.json` records an install as decisions, not copied file lists:
-Tier 1 markdown rules, skills, commands, and selected host adapters. Run
-`sh harness/install.sh` to materialize those decisions into a repo from the
-current checkout, or set `HARNESS_SOURCE=/path/to/ponytail` when the committed
-bootstrap lives in a different target repo. The materializer is idempotent and
-keeps real secrets local by writing blank `.env.example` placeholders and
-ensuring `.env` is gitignored.
+### Tier 1 Bootstrap
 
-## Supported Adapters
+`sh rig/bootstrap.sh --target /path/to/repo` installs Rig's fixed markdown
+payload. It copies the shared router and seven skills, adds native skill copies
+for Claude (`.claude/skills`) and Codex (`.agents/skills`), and adds thin
+pointers for `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Cursor, Windsurf, Cline,
+Copilot, Kiro, and `.agents/rules` readers. Other hosts can be configured to
+read `.rig/routing.md` directly. The bootstrap has no manifest parser, runtime,
+key handling, or `.env` behavior; those are outside Tier 1.
+
+Every Rig adapter reads `.rig/routing.md`. See the host entrypoint table in
+`README.md` for the installed paths.
+
+## Ponytail
+
+Ponytail is its own agent-portable skill distribution. The skills in `skills/`
+hold the core behavior; host-specific files are adapters that make that
+behavior easy to load in a given agent. Rig does not install these adapters.
+
+### Supported Adapters
 
 | Host | Files | Notes |
 |------|-------|-------|
@@ -36,13 +48,13 @@ ensuring `.env` is gitignored.
 | Kiro | `.kiro/steering/ponytail.md` | Steering rule; copy globally or into a project. |
 | Generic agents | `AGENTS.md` or `skills/*/SKILL.md` | Copy the compact rule file or load the skill files directly. |
 
-## Adapter Rule
+### Adapter Rule
 
 Keep adapters thin. When a host supports skills or hooks, point it at the
 existing `skills/` and `hooks/` files. When a host only supports project
 instructions, keep its copied rule text aligned with `AGENTS.md`.
 
-## Portable Behavior
+### Portable Behavior
 
 - `skills/ponytail/SKILL.md`: lazy senior dev mode
 - `skills/ponytail-review/SKILL.md`: over-engineering review

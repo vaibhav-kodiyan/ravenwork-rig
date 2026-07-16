@@ -5,6 +5,7 @@
 
 # Dependencies
 node_modules/
+.DS_Store
 
 # promptfoo eval artifacts
 .promptfoo/

@@ -1,0 +1,6 @@
+---
+description: Rig task routing and curated engineering workflow.
+globs:
+alwaysApply: true
+---
+Before acting, read `.rig/routing.md` and route this task through its skill table.

@@ -13,7 +13,12 @@ function stripFrontmatter(text) {
 }
 
 const agents = read('AGENTS.md');
-const canonical = agents.replace(/\n\n\(Yes, this file also applies[\s\S]*?\)$/, '').trim();
+// The Rig routing pointer lives in AGENTS.md for this repo only; the per-host
+// ponytail copies stay pure Ponytail, so it is not part of the canonical body.
+const canonical = agents
+  .replace(/^Before acting, read `rig\/tier-1\/routing\.md`[^\n]*\n+/, '')
+  .replace(/\n\n\(Yes, this file also applies[\s\S]*?\)$/, '')
+  .trim();
 
 // Compact copies: same body as AGENTS.md, host-specific frontmatter stripped.
 const copies = [
