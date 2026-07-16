@@ -255,6 +255,10 @@ GitHub Copilot CLI fallback (instruction-only mode): it reads `AGENTS.md` and `.
 
 VS Code with the Codex extension reads `AGENTS.md`, which this repo ships, so it works from the repo root with no setup (`~/.codex/AGENTS.md` makes Codex global).
 
+To install the Tier 1 markdown harness into another repo from this checkout, commit
+`harness/manifest.json` + `harness/install.sh` in that repo and run
+`HARNESS_SOURCE=/path/to/ponytail sh harness/install.sh`.
+
 Which files map to which agent: [Agent portability](docs/agent-portability.md).
 
 ### Uninstall
@@ -288,12 +292,13 @@ When changing the compact rule text, keep the agent copies aligned:
 
 ```bash
 node scripts/check-rule-copies.js
+npm run setup:dev
 npm test
 ```
 
 The OpenClaw skill package (`.openclaw/skills/`) is generated from `skills/`; rerun `node scripts/build-openclaw-skills.js` after changing a skill, the test suite fails if it is stale. To publish the skills to ClawHub, run `clawhub login` once, then `node scripts/publish-openclaw-skills.js` (it publishes all six at the `package.json` version; pass `--dry-run` to preview).
 
-The correctness benchmark spawns Python for email and CSV checks; `python3` is tried before `python`. CSV checks need `pandas` installed locally.
+The correctness benchmark spawns Python for email and CSV checks. Run `npm run setup:dev` once to create the gitignored `.venv` and install the Python test dependency (`pandas`); `npm test` automatically prefers `.venv/bin` when it exists.
 
 ## FAQ
 

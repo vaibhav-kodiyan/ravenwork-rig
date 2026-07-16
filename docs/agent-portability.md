@@ -4,6 +4,16 @@ Ponytail is an agent-portable skill distribution. The skills in `skills/` hold
 the core behavior; host-specific files are adapters that make that behavior easy
 to load in a given agent.
 
+## Harness Bootstrap
+
+`harness/manifest.json` records an install as decisions, not copied file lists:
+Tier 1 markdown rules, skills, commands, and selected host adapters. Run
+`sh harness/install.sh` to materialize those decisions into a repo from the
+current checkout, or set `HARNESS_SOURCE=/path/to/ponytail` when the committed
+bootstrap lives in a different target repo. The materializer is idempotent and
+keeps real secrets local by writing blank `.env.example` placeholders and
+ensuring `.env` is gitignored.
+
 ## Supported Adapters
 
 | Host | Files | Notes |

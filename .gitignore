@@ -13,6 +13,7 @@ benchmarks/benchmark-local-results.json
 
 # Python
 __pycache__/
+.venv/
 
 # one-off social/announcement art, not repo content
 announce-*.png
