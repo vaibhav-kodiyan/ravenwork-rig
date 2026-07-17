@@ -1,5 +1,7 @@
 # Rig
 
+<img width="1600" height="1156" alt="image" src="https://github.com/user-attachments/assets/c3f33dff-a780-4fb4-8e8c-148b88bed0cf" />
+
 Rig is a curated, host-agnostic toolbox for coding agents. Tier 1 installs a
 markdown-only workflow into any repository: one shared router, an always-on
 Ponytail implementation rule, and focused skills for intent, design, execution,
