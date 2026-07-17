@@ -1,4 +1,4 @@
-# Rig
+# Rig by Ravenwork
 
 <img width="1600" height="1156" alt="image" src="https://github.com/user-attachments/assets/c3f33dff-a780-4fb4-8e8c-148b88bed0cf" />
 
