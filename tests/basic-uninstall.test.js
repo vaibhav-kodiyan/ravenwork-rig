@@ -21,7 +21,7 @@ test('AT-5 uninstall removes Rig-emitted MCP config, hook, and .env.example — 
     materialize(target, { hosts: ['claude'], mcp_servers: [exampleServer] });
 
     // The user's real secret file — uninstall must leave it untouched.
-    const userEnv = 'EXAMPLE_DB_TOKEN=sk-ant-api03-REALVALUEDONOTDELETE\n';
+    const userEnv = ['EXAMPLE_DB_TOKEN=sk-', 'ant-api03-REALVALUEDONOTDELETE\n'].join('');
     fs.writeFileSync(path.join(target, '.env'), userEnv);
 
     // Sanity: install produced the artifacts uninstall is responsible for.

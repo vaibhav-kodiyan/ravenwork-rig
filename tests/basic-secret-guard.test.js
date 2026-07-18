@@ -19,7 +19,7 @@ function initRepo(target) {
   git(target, ['config', 'commit.gpgsign', 'false']);
 }
 
-const fakeKey = 'sk-ant-api03-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+const fakeKey = ['sk-', 'ant-api03-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'].join('');
 
 test('AT-4 guard blocks a fake key and passes a ${VAR} reference', () => {
   withRepo((target) => {

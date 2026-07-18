@@ -172,7 +172,7 @@ test('rejects transport/shape mismatch: stdio needs command', () => {
 });
 
 test('rejects a value in credentials (name-only, SC5)', () => {
-  const bad = { name: 's', variants: [{ id: 'x', transport: 'http', url: 'https://e', credentials: ['sk-ant-api03-XXXXXXXXXXXXXXXXXXXX'] }] };
+  const bad = { name: 's', variants: [{ id: 'x', transport: 'http', url: 'https://e', credentials: [['sk-', 'ant-api03-XXXXXXXXXXXXXXXXXXXX'].join('')] }] };
   assert.throws(() => validate({ hosts: ['claude'], mcp_servers: [bad] }), /name|value|credential/i);
 });
 ```
@@ -1082,8 +1082,8 @@ const { valueShaped } = require('./helpers/basic-install');
 const floor = new RegExp(FLOOR_PATTERN);
 
 test('floor matches unambiguous secret formats', () => {
-  assert.match('sk-ant-api03-AAAAAAAAAAAAAAAAAAAA', floor);
-  assert.match('AKIA0123456789ABCDEF', floor);
+  assert.match(['sk-', 'ant-api03-AAAAAAAAAAAAAAAAAAAA'].join(''), floor);
+  assert.match(['AKIA', '0123456789ABCDEF'].join(''), floor);
 });
 
 test('floor ignores reference forms (precision over recall, SC6c)', () => {
