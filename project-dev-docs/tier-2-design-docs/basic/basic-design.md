@@ -272,19 +272,25 @@ multi-language manifest — which Basic's is not.)*
   installed repo Option B buys, at the cost of one `host` tag per entry (which the manifest carries
   anyway). *(Rejected — Option A: hosts gate MCP emit only, payload unconditional; a Claude-only user
   would still receive `.kiro/steering/rig.md`, `.agents/skills/*`, etc.)*
-- **`.rig/skills/*` gating (PD1a, reversible):** `.rig/routing.md` + `.rig/rules/ponytail.md` always
-  install; `.rig/skills/*` installs when **≥1 instruction-only host** is selected (the 2 native-skill
-  hosts, claude/codex, don't need it). Flip to "always install" if a future host reads it.
+- **`.rig/skills/*` gating (PD1a, reversible):** `.rig/routing.md` + `.rig/rules/rig.md` always
+  install; `.rig/skills/*` installs when **≥1 instruction-only host** is selected (native-skill
+  hosts claude/codex don't need it; antigravity is both a native `.agents/skills` co-reader and
+  instruction-only so it also gets the `.rig/skills` fallback). Flip to "always install" if a
+  future host reads it.
 
 Host-tag map (from `bootstrap.sh`, confirmed against `tests/rig-bootstrap.test.js`): `neutral` always
-= `.rig/routing.md`, `.rig/rules/ponytail.md`; `neutral` gated on ≥1 instruction-only host =
-`.rig/skills/{grilling,product-design,ponytail,execution,tdd,debugging,code-review}/SKILL.md`;
-`claude` = `.claude/skills/rig-*` (7) + `ensure_line CLAUDE.md`; `codex` = `.agents/skills/rig-*` (7) +
-`ensure_line AGENTS.md` + `.agents/rules/rig.md`; `cursor` = `.cursor/rules/rig.mdc`; `windsurf` =
-`.windsurf/rules/rig.md`; `cline` = `.clinerules/rig.md`; `kiro` = `.kiro/steering/rig.md`; `gemini` =
-`ensure_line GEMINI.md`; `copilot` = `ensure_line .github/copilot-instructions.md`. Instruction-only
-hosts (use the `.rig/skills/*` fallback): cursor, windsurf, cline, kiro, gemini, copilot.
-Native-skill hosts: claude (`.claude/skills`), codex (`.agents/skills`).
+= `.rig/routing.md`, `.rig/rules/rig.md`; `neutral` gated on ≥1 instruction-only host =
+`.rig/skills/{grilling,product-design,implementation,execution,tdd,debugging,code-review}/SKILL.md`;
+`claude` = `.claude/skills/rig-*` (7) + `ensure_line CLAUDE.md`;
+`host: ["codex","antigravity"]` = `.agents/skills/rig-*` (7) + `.agents/rules/rig.md`;
+`host: ["codex","antigravity","codewhale"]` = `ensure_line AGENTS.md` (CodeWhale reads AGENTS.md only);
+`antigravity` = `.agents/workflows/rig*.md` (6);
+`cursor` = `.cursor/rules/rig.mdc`; `windsurf` = `.windsurf/rules/rig.md`; `cline` = `.clinerules/rig.md`;
+`kiro` = `.kiro/steering/rig.md`; `host: ["gemini","antigravity"]` = `ensure_line GEMINI.md`;
+`copilot` = `ensure_line .github/copilot-instructions.md`.
+`host` may be a string or an array of hosts that share one payload entry.
+Instruction-only hosts (use the `.rig/skills/*` fallback): cursor, windsurf, cline, kiro, gemini, copilot, antigravity.
+Native-skill hosts: claude (`.claude/skills`), codex + antigravity (`.agents/skills`).
 
 ## 7. Per-host MCP emit generator (PD2, PD3)
 
@@ -433,7 +439,7 @@ reconciled to include both real adapters.
 | Cline | `~/.cline/mcp.json` (CLI) / VS Code globalStorage (**user-global**); JSON `mcpServers` (`streamableHttp` remote) | **none documented** (literal `env`/`headers`; guidance only "store secrets in env vars") | no documented interpolation or `.env` loader; value-free emission **unverified** | `manual_note_required` (user-global + no documented value-free syntax) | docs.cline.bot/mcp/mcp-overview |
 | GitHub Copilot (VS Code) | `.vscode/mcp.json` (**project**) or user profile; JSON root `servers` + `inputs` | `${input:ID}` (masked prompt, stored), `${env:VAR}`, `${workspaceFolder}`, `${userHome}` | native project **`envFile`** (`"${workspaceFolder}/.env"`) + `${input:}` secure prompt; value-free | **`config_only_safe`** (project path + native `envFile`) | code.visualstudio.com/docs/agents/reference/mcp-configuration + docs.github.com copilot MCP |
 | GitHub Copilot CLI | `~/.copilot/mcp-config.json` (**user-global**; `COPILOT_HOME` override); JSON `mcpServers` | **none documented** (raw `env`/`headers`) | no documented interpolation or `.env` loader | `manual_note_required` (user-global → note only) | docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers |
-| Antigravity | `~/.gemini/antigravity/mcp_config.json` (**user-global**); JSON `mcpServers`; `serverUrl` for http | **none** (docs show raw token: "Replace YOUR_GITHUB_PAT…") | no documented interpolation or `.env` loader | `manual_note_required` (user-global + literal paste → note only) | github.com/github/github-mcp-server install-antigravity.md |
+| Antigravity | `~/.gemini/config/mcp_config.json` (**user-global**, unified Antigravity 2.0 / IDE / CLI path; older docs cited `~/.gemini/antigravity/mcp_config.json` — verify on install); JSON `mcpServers`; `serverUrl` + `authProviderType` for http | **none** (docs show raw token: "Replace YOUR_GITHUB_PAT…") | no documented interpolation or `.env` loader; load secrets from shell env before editing the file | `manual_note_required` (user-global + literal paste → note only; PD-open-4 — do not emit into `~/.gemini/...`) | antigravity.google/docs/mcp + github.com/github/github-mcp-server install-antigravity.md |
 | CodeWhale | `~/.codewhale/mcp.json` default (user-global), **repo-local emit via `DEEPSEEK_MCP_CONFIG` / `mcp_config_path` file-path override** → emit `./.codewhale/mcp.json`; JSON `servers`/`mcpServers` | `${VAR}` in headers (`Bearer ${HF_TOKEN}`); `bearer_token_env_var` | value-free `${VAR}`/`bearer_token_env_var`; no native `.env` loader; repo file read only after `DEEPSEEK_MCP_CONFIG` wiring (PD6/PD7) | `manual_note_required` (**emit + mandatory wiring note**, OpenClaw-style; PD6) | github.com/Hmbown/CodeWhale docs/MCP.md + CONFIGURATION.md |
 | OpenClaw (ClawHub) | `~/.openclaw/openclaw.json` default (user-global daemon), **repo-local emit via `OPENCLAW_CONFIG_PATH` file-path override** → emit `./.openclaw/openclaw.json`; JSON `mcp.servers` | `${VAR}` (documented for openclaw.json values; `mcp.servers`-scope by extension — confirm on first wire) | value-free `${VAR}`; repo file read only after `OPENCLAW_CONFIG_PATH` wiring (PD4/PD7) | `manual_note_required` (**emit + mandatory wiring note**; PD4) | docs.openclaw.ai/cli/mcp + /gateway/configuration + /help/environment |
 | Devin CLI | **`.devin/config.json` — project scope, committed** (also `.devin/config.local.json` gitignored, `~/.config/devin/config.json` user); JSON | `${env:VAR}`, `${file:/path}` | value-free name/path references; no native `.env` loader (env var must be present) | `manual_note_required` (**native project emit, clean Bucket 2**; PD5) | docs.devin.ai/cli/extensibility/mcp/configuration |

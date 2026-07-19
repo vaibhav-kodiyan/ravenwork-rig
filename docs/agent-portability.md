@@ -6,11 +6,22 @@
 
 `sh rig/bootstrap.sh --target /path/to/repo` installs Rig's fixed markdown
 payload. It copies the shared router and seven skills, adds native skill copies
-for Claude (`.claude/skills`) and Codex (`.agents/skills`), and adds thin
-pointers for `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Cursor, Windsurf, Cline,
-Copilot, Kiro, and `.agents/rules` readers. Other hosts can be configured to
-read `.rig/routing.md` directly. The bootstrap has no manifest parser, runtime,
-key handling, or `.env` behavior; those are outside Tier 1.
+for Claude (`.claude/skills`) and Codex/Antigravity (`.agents/skills`), thin
+slash-command adapters for Antigravity (`.agents/workflows/`), and pointers for
+`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, Cursor, Windsurf, Cline, Copilot, Kiro,
+and `.agents/rules` readers. Other hosts can be configured to read
+`.rig/routing.md` directly.
+
+Optional host selection (same gating as the Tier 2 materializer):
+
+```sh
+sh rig/bootstrap.sh --tier 1 --target /path/to/repo --hosts antigravity,codex
+# or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repo
+```
+
+When `--hosts` / `RIG_HOSTS` is set, bootstrap delegates to `rig/lib/payload.js`
+instead of the fixed full-install list. Without host selection, Tier 1 stays a
+dumb full copy (no runtime, keys, or `.env` behavior).
 
 Every Rig adapter reads `.rig/routing.md`. See the host entrypoint table in
 `README.md` for the installed paths.
@@ -37,7 +48,7 @@ install these adapters.
 | Cline | `.clinerules/rig.md` | Project rule. |
 | GitHub Copilot | `.github/copilot-instructions.md` | Repository instruction file. |
 | GitHub Copilot CLI | `.github/plugin/`, `AGENTS.md`, `.github/copilot-instructions.md`, `~/.copilot/copilot-instructions.md` | Plugin-supported (`copilot plugin marketplace add qaynel/Rig` + `copilot plugin install rig@rig`). Fallback instruction mode remains: per-project from `AGENTS.md` or `.github/copilot-instructions.md`, or globally from `~/.copilot/copilot-instructions.md` (instruction-tier, no `/rig` levels or hooks). |
-| Antigravity | `AGENTS.md` | Reads `AGENTS.md` at the repo root as always-on rules (like `.cursorrules`/`CLAUDE.md`); `.agents/rules/` also works for workspace rules. Also exposes an MCP config surface; see `project-dev-docs/tier-2-design-docs/basic/basic-design.md` §8. |
+| Antigravity | `antigravity-plugin/`, `hooks.json`, `AGENTS.md`, `GEMINI.md`, `.agents/rules/`, `.agents/skills/`, `.agents/workflows/` | Co-reads the Codex `.agents/` tree (`rules` + `skills`). Instruction precedence inside Antigravity: `GEMINI.md` > `AGENTS.md` > `.agents/rules/*.md` (so keep `GEMINI.md` as the Antigravity-specific override, shared standards in `AGENTS.md`). Slash commands ship as thin `.agents/workflows/*.md` adapters (same body as `.opencode/command/`; a file `rig-review.md` becomes `/rig-review`). Full-dist plugin (`antigravity-plugin/` with `plugin.json`, `skills/`, `rules/`, `mcp_config.json`, `hooks.json`) plus workspace `hooks.json` use Antigravity lifecycle events (`PreInvocation` / `PreToolUse` / `PostToolUse`, JSON `decision` on stdout) — not the Claude/Codex hook map, and not Gemini's auto-discovered `hooks/hooks.json`. MCP stays Tier B (note-only → `~/.gemini/config/mcp_config.json`; stdio `command`/`args`/`env` or remote `serverUrl` + `authProviderType`); see `project-dev-docs/tier-2-design-docs/basic/basic-design.md` §8. Paths still drift across Antigravity IDE / CLI / standalone — verify on install. |
 | CodeWhale | `AGENTS.md` | Reads `AGENTS.md` from the repo root as project instructions; also reads `CLAUDE.md` and `.claude/instructions.md` as fallbacks. Also exposes an MCP config surface; see `project-dev-docs/tier-2-design-docs/basic/basic-design.md` §8. |
 | Swival | `.swival/skills/`, `AGENTS.md` | `swival skills add https://github.com/qaynel/Rig` installs the six skills straight into `.swival/skills/`. Add `--global` to stage them in the library (`~/.config/swival/library`) first, then `swival skills add rig` (or `--global rig`) to activate per-project or everywhere. Also reads `AGENTS.md` from the repo root and `~/.config/swival/AGENTS.md` globally as instruction fallback, and exposes an MCP config surface; see `project-dev-docs/tier-2-design-docs/basic/basic-design.md` §8. |
 | VS Code + Codex extension | `AGENTS.md` | The Codex extension reads `AGENTS.md` (repo root, or `~/.codex/AGENTS.md` globally). Instruction-tier; the full Codex plugin row above adds `/rig` levels and hooks. |

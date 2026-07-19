@@ -10,6 +10,9 @@ const WIRING = {
 const CAVEAT = {
   openclaw: 'Confirm on first wire that ${VAR} interpolation is honored inside mcp.servers.',
   codewhale: 'Confirm on first wire whether the mcp_config_path overlay can replace DEEPSEEK_MCP_CONFIG.',
+  // Tier B: never emit into ~/.gemini/... (PD-open-4). Path is the unified
+  // Antigravity 2.0 / IDE / CLI surface; stay note-only until PD7 flips.
+  antigravity: 'Edit ~/.gemini/config/mcp_config.json by hand (stdio command/args/env, or serverUrl + authProviderType). Do not paste secrets into the file; load them from the shell env first. Verify on install — paths still drift across Antigravity surfaces.',
 };
 const LABELS = {
   claude: 'Claude',

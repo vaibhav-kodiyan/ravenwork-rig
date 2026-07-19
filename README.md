@@ -31,14 +31,23 @@ the same choice explicitly:
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+Narrow the install to selected hosts (same gating as the Tier 2 materializer):
+
+```sh
+sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
+# or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+```
+
 Tier 1 installs the same instruction set for these host entrypoints:
 
 - Claude Code gets project skills in `.claude/skills/` and a router pointer in
   `CLAUDE.md`.
 - Codex gets native project skills in `.agents/skills/` plus the always-on
   router pointer in `AGENTS.md`.
-- OpenCode, Antigravity, CodeWhale, Swival, and other `AGENTS.md` readers get a
-  root pointer.
+- Antigravity co-reads that same `.agents/` skills/rules tree, plus `GEMINI.md`
+  (Antigravity-specific overrides win over `AGENTS.md`) and slash-command
+  workflows under `.agents/workflows/`.
+- OpenCode, CodeWhale, Swival, and other `AGENTS.md` readers get a root pointer.
 - Gemini CLI gets a `GEMINI.md` pointer.
 - Cursor, Windsurf, Cline, GitHub Copilot, Kiro, and `.agents/rules` readers get
   their native project instruction files.
@@ -59,7 +68,7 @@ and `.agents/skills/`; the bootstrap copies them unchanged into target repos.
 | GitHub Copilot editor/CLI | `.github/copilot-instructions.md`, `AGENTS.md` |
 | Codex / VS Code Codex | `AGENTS.md`, `.agents/skills/rig-*/SKILL.md` |
 | Gemini CLI | `GEMINI.md` |
-| Antigravity | `AGENTS.md`, `.agents/rules/rig.md` |
+| Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/`, `antigravity-plugin/`, `hooks.json` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | Other agents | Configure the host to read `.rig/routing.md`, or add the one-line pointer from `rig/tier-1/adapters/pointer.md` to its project instructions. |
@@ -81,10 +90,12 @@ distinctive parts of each workflow instead of concatenating source documents.
 
 ## Tier 1 Boundary
 
-Tier 1 is intentionally a dumb bootstrap with a fixed file list. It has no
-manifest, parser, materializer, sync engine, runtime, keys, or `.env` handling.
-The shared layout is predictable so a future Tier 2 can describe it without
-changing the installed shape.
+Tier 1 is intentionally a dumb bootstrap with a fixed file list by default. It
+has no sync engine, runtime, keys, or `.env` handling. Optional `--hosts` /
+`RIG_HOSTS` reuses the Tier 2 payload filter (`rig/lib/payload.js`) so a narrow
+install matches the materializer; without that flag the full fixed list remains
+the oracle. The shared layout is predictable so a future Tier 2 can describe it
+without changing the installed shape.
 
 The workflow is advisory because Tier 1 ships markdown only. Claude and other
 hook-capable hosts can provide real tool-boundary enforcement in a later tier;

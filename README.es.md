@@ -33,6 +33,13 @@ automatización puede tomar la misma decisión explícitamente:
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+Para limitar la instalación a hosts concretos (el mismo gating que el materializer de Tier 2):
+
+```sh
+sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
+# o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+```
+
 Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
 host:
 
@@ -40,8 +47,11 @@ host:
   router en `CLAUDE.md`.
 - Codex recibe skills nativas de proyecto en `.agents/skills/` más el puntero
   siempre activo al router en `AGENTS.md`.
-- OpenCode, Antigravity, CodeWhale, Swival y otros lectores de `AGENTS.md`
-  reciben un puntero raíz.
+- Antigravity co-lee ese mismo árbol `.agents/` (skills/rules), más `GEMINI.md`
+  (los overrides específicos de Antigravity ganan sobre `AGENTS.md`) y workflows
+  de slash commands en `.agents/workflows/`.
+- OpenCode, CodeWhale, Swival y otros lectores de `AGENTS.md` reciben un puntero
+  raíz.
 - Gemini CLI recibe un puntero en `GEMINI.md`.
 - Cursor, Windsurf, Cline, GitHub Copilot, Kiro y lectores de `.agents/rules`
   reciben sus archivos nativos de instrucciones de proyecto.
@@ -63,7 +73,7 @@ repositorios destino.
 | GitHub Copilot editor/CLI | `.github/copilot-instructions.md`, `AGENTS.md` |
 | Codex / VS Code Codex | `AGENTS.md`, `.agents/skills/rig-*/SKILL.md` |
 | Gemini CLI | `GEMINI.md` |
-| Antigravity | `AGENTS.md`, `.agents/rules/rig.md` |
+| Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/`, `antigravity-plugin/`, `hooks.json` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | Otros agentes | Configura el host para leer `.rig/routing.md`, o agrega el puntero de una línea de `rig/tier-1/adapters/pointer.md` a sus instrucciones de proyecto. |
@@ -91,10 +101,13 @@ las partes distintivas de cada flujo en vez de concatenar documentos fuente.
 
 ## Límite de Tier 1
 
-Tier 1 es intencionalmente un bootstrap tonto con una lista fija de archivos. No
-tiene manifiesto, parser, materializer, motor de sincronización, runtime, claves
-ni manejo de `.env`. El layout compartido es predecible para que un futuro Tier
-2 pueda describirlo sin cambiar la forma instalada.
+Tier 1 es intencionalmente un bootstrap tonto con una lista fija de archivos por
+defecto. No tiene motor de sincronización, runtime, claves ni manejo de `.env`.
+`--hosts` / `RIG_HOSTS` opcionales reutilizan el filtro de payload de Tier 2
+(`rig/lib/payload.js`) para que una instalación estrecha coincida con el
+materializer; sin ese flag, la lista fija completa sigue siendo el oráculo. El
+layout compartido es predecible para que un futuro Tier 2 pueda describirlo sin
+cambiar la forma instalada.
 
 El flujo de trabajo es asesor porque Tier 1 solo entrega Markdown. Claude y
 otros hosts con hooks pueden proveer enforcement real en los límites de

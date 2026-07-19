@@ -31,14 +31,24 @@ Tier 1은 현재 로컬 Rig 체크아웃에서 설치한다. foundational design
 sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+선택한 호스트만 설치하려면 (Tier 2 materializer와 같은 게이팅):
+
+```sh
+sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,codex
+# 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
+```
+
 Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 
 - Claude Code는 `.claude/skills/`에 프로젝트 스킬을 받고 `CLAUDE.md`에
   라우터 포인터를 받는다.
 - Codex는 `.agents/skills/`에 네이티브 프로젝트 스킬을 받고 `AGENTS.md`에
   항상 켜져 있는 라우터 포인터를 받는다.
-- OpenCode, Antigravity, CodeWhale, Swival 및 그 밖의 `AGENTS.md` 리더는
-  루트 포인터를 받는다.
+- Antigravity는 같은 `.agents/` 스킬/룰 트리를 함께 읽고, `GEMINI.md`
+  (Antigravity 전용 오버라이드가 `AGENTS.md`보다 우선)와
+  `.agents/workflows/`의 슬래시 커맨드 워크플로를 추가로 받는다.
+- OpenCode, CodeWhale, Swival 및 그 밖의 `AGENTS.md` 리더는 루트 포인터를
+  받는다.
 - Gemini CLI는 `GEMINI.md` 포인터를 받는다.
 - Cursor, Windsurf, Cline, GitHub Copilot, Kiro 및 `.agents/rules` 리더는
   각자의 네이티브 프로젝트 지시문 파일을 받는다.
@@ -60,7 +70,7 @@ Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 | GitHub Copilot editor/CLI | `.github/copilot-instructions.md`, `AGENTS.md` |
 | Codex / VS Code Codex | `AGENTS.md`, `.agents/skills/rig-*/SKILL.md` |
 | Gemini CLI | `GEMINI.md` |
-| Antigravity | `AGENTS.md`, `.agents/rules/rig.md` |
+| Antigravity | `AGENTS.md`, `GEMINI.md`, `.agents/rules/rig.md`, `.agents/skills/rig-*/SKILL.md`, `.agents/workflows/`, `antigravity-plugin/`, `hooks.json` |
 | Kiro | `.kiro/steering/rig.md` |
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | 기타 에이전트 | 호스트가 `.rig/routing.md`를 읽도록 설정하거나, `rig/tier-1/adapters/pointer.md`의 한 줄 포인터를 프로젝트 지시문에 추가한다. |
@@ -88,10 +98,12 @@ Hermes 네이티브 플러그인(`plugin.yaml`)으로 Rig을 설치한다. `pre_
 
 ## Tier 1 경계
 
-Tier 1은 의도적으로 고정 파일 목록만 가진 단순한 부트스트랩이다. manifest,
-parser, materializer, sync engine, runtime, keys, `.env` 처리가 없다.
-공유 레이아웃은 예측 가능하므로, 향후 Tier 2가 설치된 형태를 바꾸지 않고도
-이를 설명할 수 있다.
+Tier 1은 기본적으로 고정 파일 목록만 가진 단순한 부트스트랩이다. sync engine,
+runtime, keys, `.env` 처리가 없다. 선택적 `--hosts` / `RIG_HOSTS`는 Tier 2
+payload 필터(`rig/lib/payload.js`)를 재사용해 좁은 설치가 materializer와
+일치하게 한다. 플래그가 없으면 전체 고정 목록이 그대로 오라클이다. 공유
+레이아웃은 예측 가능하므로, 향후 Tier 2가 설치된 형태를 바꾸지 않고도 이를
+설명할 수 있다.
 
 Tier 1은 마크다운만 제공하므로 워크플로는 권고 사항이다. Claude와 다른
 hook 가능 호스트는 이후 tier에서 실제 도구 경계 강제를 제공할 수 있지만,

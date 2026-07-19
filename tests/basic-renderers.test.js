@@ -125,7 +125,7 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
     ['windsurf', ['.windsurf/mcp_config.json', '.codeium/mcp_config.json']],
     ['cline', ['.cline/mcp.json']],
     ['copilot-cli', ['.copilot/mcp-config.json']],
-    ['antigravity', ['.gemini/antigravity/mcp_config.json']],
+    ['antigravity', ['.gemini/antigravity/mcp_config.json', '.gemini/config/mcp_config.json']],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);

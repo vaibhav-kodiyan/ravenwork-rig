@@ -104,6 +104,17 @@ test('TP-C9 CodeWhale setup block carries its exact first-wire caveat', () => {
   });
 });
 
+test('Antigravity Tier-B note points at the unified ~/.gemini/config/mcp_config.json path', () => {
+  withRepo((target) => {
+    materialize(target, { hosts: ['antigravity'], mcp_servers: [stdioOnly] });
+
+    const block = hostBlock(target, 'Antigravity');
+    assert.match(block, /~\/\.gemini\/config\/mcp_config\.json/, 'note names the unified MCP path');
+    assert.match(block, /serverUrl|authProviderType|stdio/i, 'note mentions stdio vs remote auth shape');
+    assert.doesNotMatch(block, /Confirm on first wire/, 'Antigravity uses its own caveat wording');
+  });
+});
+
 test('TP-C9 first-wire caveats do not leak into other host blocks', () => {
   withRepo((target) => {
     materialize(target, {

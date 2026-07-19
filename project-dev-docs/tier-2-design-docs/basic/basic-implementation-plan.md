@@ -67,7 +67,10 @@ node --test tests/basic-acceptance.test.js tests/basic-secret-guard.test.js test
 - `docs/agent-portability.md` — add OpenClaw + Devin rows; relabel Antigravity/CodeWhale/Swival.
 - `README.es.md`, `README.ko.md` — add the missing Hermes install section.
 
-**Never touch:** `rig/bootstrap.sh` (kept as the round-trip oracle), the four frozen Gate-1 test files, `scripts/uninstall.js`.
+**Never touch:** the four frozen Gate-1 test files, `scripts/uninstall.js`.
+`rig/bootstrap.sh` remains the default full-install oracle; optional `--hosts` /
+`RIG_HOSTS` may delegate to `rig/lib/payload.js` (same gating as the materializer)
+and may install Antigravity `.agents/workflows/` adapters.
 
 **Design note — one file per host vs one renderers file.** PD2a mandates *standalone, repetitive, native* renderers with **no shared IR / template engine**, but explicitly allows shared *mechanical* helpers (`renderCredentialSetupNote`, the read-or-init JSON merge). This plan keeps all renderers in one `rig/lib/renderers.js` sectioned one-function-per-host, sharing only the JSON/TOML file-merge primitives. If that file grows past ~400 lines, split by tier into `rig/lib/renderers/{tier-a,tier-b}.js` — a mechanical split, not an abstraction.
 
@@ -111,29 +114,35 @@ Foundation. Encodes `bootstrap.sh` as JSON data (`rig/manifest.json`) and builds
 
     { "op": "copy", "from": ".claude/skills/rig-grilling/SKILL.md", "to": ".claude/skills/rig-grilling/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-product-design/SKILL.md", "to": ".claude/skills/rig-product-design/SKILL.md", "host": "claude" },
-    { "op": "copy", "from": ".claude/skills/rig-ponytail/SKILL.md", "to": ".claude/skills/rig-ponytail/SKILL.md", "host": "claude" },
+    { "op": "copy", "from": ".claude/skills/rig-implementation/SKILL.md", "to": ".claude/skills/rig-implementation/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-execution/SKILL.md", "to": ".claude/skills/rig-execution/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-tdd/SKILL.md", "to": ".claude/skills/rig-tdd/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-debugging/SKILL.md", "to": ".claude/skills/rig-debugging/SKILL.md", "host": "claude" },
     { "op": "copy", "from": ".claude/skills/rig-code-review/SKILL.md", "to": ".claude/skills/rig-code-review/SKILL.md", "host": "claude" },
 
-    { "op": "copy", "from": ".agents/skills/rig-grilling/SKILL.md", "to": ".agents/skills/rig-grilling/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-product-design/SKILL.md", "to": ".agents/skills/rig-product-design/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-ponytail/SKILL.md", "to": ".agents/skills/rig-ponytail/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-execution/SKILL.md", "to": ".agents/skills/rig-execution/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-tdd/SKILL.md", "to": ".agents/skills/rig-tdd/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-debugging/SKILL.md", "to": ".agents/skills/rig-debugging/SKILL.md", "host": "codex" },
-    { "op": "copy", "from": ".agents/skills/rig-code-review/SKILL.md", "to": ".agents/skills/rig-code-review/SKILL.md", "host": "codex" },
+    { "op": "copy", "from": ".agents/skills/rig-grilling/SKILL.md", "to": ".agents/skills/rig-grilling/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-product-design/SKILL.md", "to": ".agents/skills/rig-product-design/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-implementation/SKILL.md", "to": ".agents/skills/rig-implementation/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-execution/SKILL.md", "to": ".agents/skills/rig-execution/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-tdd/SKILL.md", "to": ".agents/skills/rig-tdd/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-debugging/SKILL.md", "to": ".agents/skills/rig-debugging/SKILL.md", "host": ["codex", "antigravity"] },
+    { "op": "copy", "from": ".agents/skills/rig-code-review/SKILL.md", "to": ".agents/skills/rig-code-review/SKILL.md", "host": ["codex", "antigravity"] },
 
     { "op": "ensure_line", "to": "CLAUDE.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "claude" },
     { "op": "copy", "from": "rig/tier-1/adapters/cursor.mdc", "to": ".cursor/rules/rig.mdc", "host": "cursor" },
     { "op": "copy", "from": "rig/tier-1/adapters/pointer.md", "to": ".windsurf/rules/rig.md", "host": "windsurf" },
     { "op": "copy", "from": "rig/tier-1/adapters/pointer.md", "to": ".clinerules/rig.md", "host": "cline" },
-    { "op": "copy", "from": "rig/tier-1/adapters/pointer.md", "to": ".agents/rules/rig.md", "host": "codex" },
+    { "op": "copy", "from": "rig/tier-1/adapters/pointer.md", "to": ".agents/rules/rig.md", "host": ["codex", "antigravity"] },
     { "op": "copy", "from": "rig/tier-1/adapters/kiro.md", "to": ".kiro/steering/rig.md", "host": "kiro" },
-    { "op": "ensure_line", "to": "AGENTS.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "codex" },
-    { "op": "ensure_line", "to": "GEMINI.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "gemini" },
-    { "op": "ensure_line", "to": ".github/copilot-instructions.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "copilot" }
+    { "op": "ensure_line", "to": "AGENTS.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": ["codex", "antigravity", "codewhale"] },
+    { "op": "ensure_line", "to": "GEMINI.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": ["gemini", "antigravity"] },
+    { "op": "ensure_line", "to": ".github/copilot-instructions.md", "line": "Before acting, read `.rig/routing.md` and route this task through its skill table.", "host": "copilot" },
+    { "op": "copy", "from": ".agents/workflows/rig.md", "to": ".agents/workflows/rig.md", "host": "antigravity" },
+    { "op": "copy", "from": ".agents/workflows/rig-review.md", "to": ".agents/workflows/rig-review.md", "host": "antigravity" },
+    { "op": "copy", "from": ".agents/workflows/rig-audit.md", "to": ".agents/workflows/rig-audit.md", "host": "antigravity" },
+    { "op": "copy", "from": ".agents/workflows/rig-debt.md", "to": ".agents/workflows/rig-debt.md", "host": "antigravity" },
+    { "op": "copy", "from": ".agents/workflows/rig-gain.md", "to": ".agents/workflows/rig-gain.md", "host": "antigravity" },
+    { "op": "copy", "from": ".agents/workflows/rig-help.md", "to": ".agents/workflows/rig-help.md", "host": "antigravity" }
   ]
 }
 ```
@@ -278,11 +287,12 @@ Wire the frozen CLI seam and run the payload pass byte-identically to `bootstrap
 - Consumes: `loadUserConfig`, `validate` (Task 1); `rig/manifest.json`.
 - Produces (`rig/lib/payload.js`):
   - `ROOT` — absolute path to the Rig checkout root (`path.join(__dirname, '..', '..')`).
-  - `INSTRUCTION_ONLY = ['cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot']`
-  - `PAYLOAD_HOSTS = ['claude','codex','cursor','windsurf','cline','kiro','gemini','copilot']` — the hosts the payload has entries for; the default when `hosts` is omitted.
+  - `INSTRUCTION_ONLY = ['cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot', 'antigravity']`
+  - `PAYLOAD_HOSTS = ['claude','codex','antigravity','cursor','windsurf','cline','kiro','gemini','copilot']` — the hosts the payload has entries for; the default when `hosts` is omitted.
   - `loadCanonicalManifest() -> { pointer, payload }`
   - `copyOp(target, from, to) -> void`
   - `ensureLine(target, to, line) -> void` (byte-identical to bootstrap's `grep -Fqx || printf '\n%s\n'`)
+  - `hostSelected(entryHost, selected) -> bool` — `host` may be a string or an array of hosts that share one payload entry.
   - `runPayload(target, hosts) -> void` — filters ops by host selection + `gate`, executes them.
 - Produces (`rig/materialize.js`): the CLI. `--target <dir>` + `--manifest <file>` runs install; `--target <dir> --uninstall` runs uninstall (stubbed until Task 7).
 
@@ -336,8 +346,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..', '..');
-const INSTRUCTION_ONLY = ['cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot'];
-const PAYLOAD_HOSTS = ['claude', 'codex', 'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot'];
+// Antigravity co-reads `.agents/skills` natively and also gets `.rig/skills` as
+// the instruction-only fallback (same gate as cursor/gemini/etc.).
+const INSTRUCTION_ONLY = [
+  'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot', 'antigravity',
+];
+const PAYLOAD_HOSTS = [
+  'claude', 'codex', 'antigravity', 'cursor', 'windsurf', 'cline', 'kiro', 'gemini', 'copilot',
+];
 
 function loadCanonicalManifest() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, 'rig', 'manifest.json'), 'utf8'));
@@ -360,20 +376,30 @@ function ensureLine(target, to, line) {
   }
 }
 
+// `host` may be a string, or an array of hosts that share one payload entry.
+function hostSelected(entryHost, selected) {
+  if (entryHost === 'neutral') return true;
+  const hosts = Array.isArray(entryHost) ? entryHost : [entryHost];
+  return hosts.some((host) => selected.includes(host));
+}
+
 function runPayload(target, hosts) {
   const selected = hosts && hosts.length ? hosts : PAYLOAD_HOSTS;
   const anyInstructionOnly = INSTRUCTION_ONLY.some((h) => selected.includes(h));
   const { payload } = loadCanonicalManifest();
 
   for (const entry of payload) {
-    if (entry.host !== 'neutral' && !selected.includes(entry.host)) continue;
+    if (!hostSelected(entry.host, selected)) continue;
     if (entry.gate === 'instruction_only_selected' && !anyInstructionOnly) continue;
     if (entry.op === 'copy') copyOp(target, entry.from, entry.to);
     else if (entry.op === 'ensure_line') ensureLine(target, entry.to, entry.line);
   }
 }
 
-module.exports = { ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS, loadCanonicalManifest, copyOp, ensureLine, runPayload };
+module.exports = {
+  ROOT, INSTRUCTION_ONLY, PAYLOAD_HOSTS,
+  loadCanonicalManifest, copyOp, ensureLine, hostSelected, runPayload,
+};
 ```
 
 - [ ] **Step 4: Run the payload unit test to confirm GREEN**

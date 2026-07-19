@@ -80,3 +80,31 @@ test('TP-C2.4 materialization is deterministic for identical manifests', () => {
     });
   });
 });
+
+test('antigravity co-reads the Codex .agents tree plus GEMINI.md, workflows, and .rig/skills', () => {
+  withRepo((target) => {
+    materialize(target, { hosts: ['antigravity'], mcp_servers: [] });
+
+    assert.ok(exists(target, '.agents/skills/rig-implementation/SKILL.md'), '.agents skills installed');
+    assert.ok(exists(target, '.agents/rules/rig.md'), '.agents rules installed');
+    assert.ok(exists(target, 'AGENTS.md'), 'AGENTS.md pointer installed');
+    assert.ok(exists(target, 'GEMINI.md'), 'GEMINI.md pointer installed for Antigravity overrides');
+    assert.ok(exists(target, '.agents/workflows/rig.md'), 'Antigravity workflows installed');
+    assert.ok(exists(target, '.agents/workflows/rig-help.md'), 'Antigravity help workflow installed');
+    assert.ok(exists(target, '.rig/skills/grilling/SKILL.md'), 'instruction-only host gets .rig/skills');
+    assert.equal(exists(target, '.claude/skills/rig-implementation/SKILL.md'), false, 'Claude tree pruned');
+  });
+});
+
+test('codewhale gets AGENTS.md only — not the .agents skills/rules tree', () => {
+  withRepo((target) => {
+    materialize(target, { hosts: ['codewhale'], mcp_servers: [] });
+
+    assert.ok(exists(target, 'AGENTS.md'), 'AGENTS.md pointer installed');
+    assert.ok(exists(target, '.rig/routing.md'), 'shared router installed');
+    assert.equal(exists(target, '.agents/skills/rig-implementation/SKILL.md'), false, '.agents skills pruned');
+    assert.equal(exists(target, '.agents/rules/rig.md'), false, '.agents rules pruned');
+    assert.equal(exists(target, 'GEMINI.md'), false, 'GEMINI.md pruned');
+    assert.equal(exists(target, '.agents/workflows/rig.md'), false, 'workflows pruned');
+  });
+});
