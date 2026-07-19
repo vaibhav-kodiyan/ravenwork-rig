@@ -54,9 +54,12 @@ test('TP-X.1 materializer writes nothing outside the target repo', () => {
 test('TP-X.2 installed repo contains static files only, with no Rig runtime', () => {
   withRepo((target) => {
     execFileSync('git', ['init', '-q'], { cwd: target, stdio: 'pipe' });
+    fs.chmodSync(path.join(target, '.git', 'description'), 0o755);
+    fs.chmodSync(path.join(target, '.git', 'info', 'exclude'), 0o755);
+    const existingFiles = new Set(relFiles(target));
     materialize(target, { hosts: ['claude', 'cursor', 'codex'], mcp_servers: [exampleServer] });
 
-    const files = relFiles(target).filter((rel) => rel !== '.rig-manifest.test.json');
+    const files = relFiles(target).filter((rel) => rel !== '.rig-manifest.test.json' && !existingFiles.has(rel));
     assert.deepEqual(
       files.filter((rel) => /node_modules|package\.json|materialize\.js|daemon|service|runtime/i.test(rel)),
       [],
