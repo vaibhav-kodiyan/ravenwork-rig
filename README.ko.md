@@ -65,6 +65,12 @@ Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | 기타 에이전트 | 호스트가 `.rig/routing.md`를 읽도록 설정하거나, `rig/tier-1/adapters/pointer.md`의 한 줄 포인터를 프로젝트 지시문에 추가한다. |
 
+### Hermes Agent
+
+Hermes 네이티브 플러그인(`plugin.yaml`)으로 Rig을 설치한다. `pre_llm_call`로
+활성 모드를 주입하고, `/rig` 모드 전환 명령을 등록하며, 스킬을
+`rig:<skill>` 형식으로 노출한다.
+
 ## 큐레이션 축
 
 | 단계 | Rig 소유자 |

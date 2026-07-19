@@ -68,6 +68,12 @@ repositorios destino.
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | Otros agentes | Configura el host para leer `.rig/routing.md`, o agrega el puntero de una línea de `rig/tier-1/adapters/pointer.md` a sus instrucciones de proyecto. |
 
+### Hermes Agent
+
+Instala Rig como plugin nativo de Hermes (`plugin.yaml`): inyecta el modo
+activo vía `pre_llm_call`, registra el cambio de modo `/rig` y expone las
+skills como `rig:<skill>`.
+
 ## Columna vertebral de curaduría
 
 | Fase | Owner de Rig |
