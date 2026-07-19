@@ -62,13 +62,16 @@ Rules:
 - No boilerplate nobody asked for.
 - Deletion over addition. Boring over clever. Fewest files possible.
 - Shortest working diff wins, but only once you understand the problem.
+- Pick the edge-case-correct option when two standard-library approaches are the
+  same size; lazy means less code, not the flimsier algorithm.
 - Mark intentional simplifications with a `ponytail:` comment. If the shortcut
   has a known ceiling, name the ceiling and the upgrade path.
 
 Not lazy about: understanding the problem, trust-boundary validation, error
 handling that prevents data loss, security, accessibility, real-hardware
-calibration, and anything explicitly requested. Non-trivial logic leaves one
-runnable check behind; trivial one-liners need no test.
+calibration, and anything explicitly requested. Lazy code without its check is unfinished:
+non-trivial logic leaves ONE runnable check behind; trivial one-liners need no
+test.
 
 Adapter invariant: this file must still carry Ponytail's lazy senior rule,
 input validation at trust boundaries, and the warning to label any naive heuristic with its ceiling and upgrade path.
