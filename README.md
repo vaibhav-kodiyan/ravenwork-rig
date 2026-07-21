@@ -73,6 +73,34 @@ and `.agents/skills/`; the bootstrap copies them unchanged into target repos.
 | OpenCode, CodeWhale, Swival | `AGENTS.md` |
 | Other agents | Configure the host to read `.rig/routing.md`, or add the one-line pointer from `rig/tier-1/adapters/pointer.md` to its project instructions. |
 
+## Install Full Plugin Distribution
+
+Rig also ships richer native adapters for hosts that can load plugins,
+extensions, commands, hooks, or statusline integrations. Tier 1 stays the
+markdown bootstrap above; use the full distribution when you want the host's
+native install surface.
+
+| Host | Install / load path |
+|---|---|
+| Claude Code | local plugin bundle in `.claude-plugin/` with commands, hooks, and statusline support |
+| Codex | local plugin bundle in `.codex-plugin/` with bundled skills and lifecycle hooks |
+| OpenCode | load `.opencode/plugins/rig.mjs`; commands live in `.opencode/command/` |
+| pi | package extension in `pi-extension/` |
+| Gemini CLI | extension manifest in `gemini-extension.json`; commands live in `commands/` |
+| GitHub Copilot CLI | `copilot plugin marketplace add qaynel/Rig`, then `copilot plugin install rig@rig` |
+| Swival | `swival skills add https://github.com/qaynel/Rig` |
+| OpenClaw | `clawhub install rig` |
+| Devin | `devin plugins install qaynel/Rig` |
+
+See `docs/agent-portability.md` for the adapter matrix and fallback
+instruction-mode paths.
+
+### Hermes Agent
+
+Install Rig as a native Hermes plugin (`plugin.yaml`): it injects the active
+mode through `pre_llm_call`, registers `/rig` mode switching, and exposes the
+skills as `rig:<skill>`.
+
 ## Install Tier 2 (MCP)
 
 Tier 2 "Basic" adds one capability on top of Tier 1: a **credentialed

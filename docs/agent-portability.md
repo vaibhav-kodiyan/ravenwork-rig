@@ -53,8 +53,8 @@ install these adapters.
 | Swival | `.swival/skills/`, `AGENTS.md` | `swival skills add https://github.com/qaynel/Rig` installs the six skills straight into `.swival/skills/`. Add `--global` to stage them in the library (`~/.config/swival/library`) first, then `swival skills add rig` (or `--global rig`) to activate per-project or everywhere. Also reads `AGENTS.md` from the repo root and `~/.config/swival/AGENTS.md` globally as instruction fallback, and exposes an MCP config surface; see `project-dev-docs/tier-2-design-docs/basic/basic-design.md` §8. |
 | VS Code + Codex extension | `AGENTS.md` | The Codex extension reads `AGENTS.md` (repo root, or `~/.codex/AGENTS.md` globally). Instruction-tier; the full Codex plugin row above adds `/rig` levels and hooks. |
 | Kiro | `.kiro/steering/rig.md` | Steering rule; copy globally or into a project. |
-| OpenClaw | `.openclaw/skills/`, README.es/ko install sections | ClawHub skill package built by `scripts/build-openclaw-skills.js`; `clawhub install rig`. |
-| Devin | `.devin-plugin/plugin.json`, README.es/ko install sections | `devin plugins install qaynel/Rig`; skills exposed as `/rig:<skill>`. |
+| OpenClaw | `.openclaw/skills/` | ClawHub skill package built by `scripts/build-openclaw-skills.js`; `clawhub install rig`. |
+| Devin | `.devin-plugin/plugin.json` | `devin plugins install qaynel/Rig`; skills exposed as `/rig:<skill>`. |
 | Generic agents | `AGENTS.md` or `skills/*/SKILL.md` | Copy the compact rule file or load the skill files directly. Instruction-tier, no MCP surface. |
 
 ### Adapter Rule

@@ -40,3 +40,23 @@ test('TP-C8.3 localized READMEs include a Hermes install section', () => {
     assert.match(body, /plugin\.yaml|hermes/i, `${rel} includes Hermes install details`);
   }
 });
+
+test('English README discovers full plugin distribution installs', () => {
+  const body = read('README.md');
+  assert.match(body, /## Install Full Plugin Distribution/, 'README has a full distribution section');
+  assert.match(body, /### Hermes Agent/, 'README includes the Hermes install section');
+  for (const command of [
+    /copilot plugin marketplace add qaynel\/Rig/,
+    /copilot plugin install rig@rig/,
+    /swival skills add https:\/\/github\.com\/qaynel\/Rig/,
+    /clawhub install rig/,
+    /devin plugins install qaynel\/Rig/,
+  ]) {
+    assert.match(body, command);
+  }
+});
+
+test('agent portability matrix does not point OpenClaw or Devin at translated READMEs', () => {
+  const body = read('docs/agent-portability.md');
+  assert.doesNotMatch(body, /README\.es\/ko install sections/);
+});

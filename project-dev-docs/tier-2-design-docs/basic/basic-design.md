@@ -59,17 +59,16 @@ three tiers:
 
 - **Tier A — Wired emit.** Rig emits a value-free config the host uses. Sub-shapes: `config_only_safe`
   (emit, no note), native-project emit + manual note, and **user-global-default + repo-local emit via a
-  file-path override + mandatory wiring note** (the OpenClaw/CodeWhale shape, PD4/PD6/PD7). **12 hosts.**
-- **Tier B — Note-only.** Rig emits **no** host MCP config (user-global-only, PD-open-4 forbids the
-  `$HOME` write, and no clean file-path override to redirect it into the repo); the user gets a
-  documented manual setup note in `.rig/mcp-setup.md`. **5 hosts** (Hermes, Windsurf, Cline, GitHub
-  Copilot CLI, Antigravity).
+  file-path override + mandatory wiring note** (the OpenClaw/CodeWhale shape, PD4/PD6/PD7). **13 hosts.**
+- **Tier B — Note-only.** Rig emits **no** host MCP config because the host has no safe repo-contained,
+  value-free emit path; the user gets a documented manual setup note in `.rig/mcp-setup.md`. **5 hosts**
+  (Hermes, Windsurf, Cline, GitHub Copilot CLI, Antigravity).
 - **Tier C — Instruction-only / no MCP.** The host has no MCP config surface; it is covered by the
-  instruction payload, with one acknowledgment line (PD-open-6). **2 hosts** (Generic; VS Code + Codex
-  extension reuses the Codex renderer — no separate emit).
+  instruction payload, with one acknowledgment line (PD-open-6). **1 host** (Generic). VS Code + Codex
+  extension is Tier A because it reuses the Codex renderer.
 
 **The deliberate limit (names the A2 gap):** "support all hosts" does **not** mean an emitted working
-config for all 19. For the 5 Tier-B and 2 Tier-C hosts, "support" is a documented manual step or
+config for all 19. For the 5 Tier-B and 1 Tier-C hosts, "support" is a documented manual step or
 instruction coverage **by design** (PD-open-4, PD-open-6, PD7) — a floor, not a failure.
 
 ## 3. Scope & architecture decisions (BSC1–BSC6, Gate 1)
@@ -366,7 +365,7 @@ no plugin/runtime layer.
 - **PD4 — OpenClaw emit (new renderer).** Verified surface: `~/.openclaw/openclaw.json` (**user-global**,
   the gateway is a machine-global daemon), JSON `mcp.servers`. OpenClaw's gateway *only* reads the global
   file — a project file is inert unless `OPENCLAW_CONFIG_PATH` redirects it. **Decision (user): emit a
-  repo-local `./.openclaw/openclaw.json` anyway**, value-free via `${VAR}` (officially documented for
+  repo-local `./.openclaw/openclaw.json` anyway**, HTTP `transport: "streamable-http"`, value-free via `${VAR}` (officially documented for
   openclaw.json values; `mcp.servers`-scope applies by extension — carry a "confirm on first wire"
   caveat), **plus a mandatory `.rig/mcp-setup.md` wiring note** telling the user to
   `export OPENCLAW_CONFIG_PATH=./.openclaw/openclaw.json`. `credential_safety: manual_note_required`.
@@ -374,14 +373,15 @@ no plugin/runtime layer.
   secret: violates SC5.)* Source: docs.openclaw.ai/cli/mcp, /gateway/configuration, /help/environment.
 - **PD5 — Devin emit (new JSON renderer).** Verified surface: **`.devin/config.json` — project scope,
   committed to VCS** (also `.devin/config.local.json` gitignored, `~/.config/devin/config.json` user).
-  Value-free `${env:VAR}` / `${file:/path}`; no native `.env` loader (env var must be present in the
+  HTTP entries use `transport: "http"`. Value-free `${env:VAR}` / `${file:/path}`; no native `.env` loader (env var must be present in the
   process). This is a **clean Bucket 2 emit** (native committable project config) + manual load note —
   no wiring redirect needed. Reuses the PD2d read-or-init JSON merge. `credential_safety:
   manual_note_required`. Source: docs.devin.ai/cli/extensibility/mcp/configuration.
 - **PD6 — CodeWhale reclassified note-only → emit (new renderer).** Re-verification found CodeWhale is
   user-global by default (`~/.codewhale/mcp.json`) **but** exposes a **file-path override**
-  (`DEEPSEEK_MCP_CONFIG` env / `mcp_config_path` setting) **and** value-free syntax (`${VAR}` headers,
-  `bearer_token_env_var`). So, by the PD7 rule, it flips to the OpenClaw shape: **emit
+  (`DEEPSEEK_MCP_CONFIG` env / `mcp_config_path` setting) **and** value-free syntax
+  (`bearer_token_env_var`). Static headers take precedence, so the renderer must not also emit an
+  `Authorization` header. By the PD7 rule, it flips to the OpenClaw shape: **emit
   `./.codewhale/mcp.json` + mandatory wiring note** (`export DEEPSEEK_MCP_CONFIG=…`). Upgrade path (not
   yet verified): CodeWhale auto-loads a `./.codewhale/config.toml` overlay; if `mcp_config_path` is an
   overlay-safe key, emitting that overlay removes the manual step (→ clean Bucket 2). `credential_safety:
@@ -397,9 +397,9 @@ no plugin/runtime layer.
   **flip → CodeWhale** (PD6). **Stay note-only → Hermes** (global-only, project MCP is open FR #23130, no
   file-path override), **Windsurf** (global-only, no project copy, no override), **Cline** (global-only,
   project MCP is open FR #2418), **GitHub Copilot CLI** (`COPILOT_HOME` relocates the whole home *and* no
-  `${}` syntax → literal paste), **Antigravity** (project `mcpServers` is **read but silently ignored**,
-  antigravity-cli #60). Sources: docs.windsurf.com; docs.cline.bot + cline #2418; docs.github.com copilot
-  CLI; antigravity-cli #60; hermes-agent #23130.
+  `${}` syntax → literal paste), **Antigravity** (native workspace `.agents/mcp_config.json`, but no
+  documented value-free credential syntax). Sources: docs.windsurf.com; docs.cline.bot + cline #2418;
+  docs.github.com copilot CLI; antigravity.google/docs/mcp; hermes-agent #23130.
 - **PD8 — First-class user setup documentation for manual-wiring hosts (user 2026-07-18).** The manual
   step must be *easy*, not merely documented. `.rig/mcp-setup.md` (PD2c) ships **per-host, named,
   copy-pasteable** setup for every `manual_note_required` host: the exact wiring export for the override
@@ -439,10 +439,10 @@ reconciled to include both real adapters.
 | Cline | `~/.cline/mcp.json` (CLI) / VS Code globalStorage (**user-global**); JSON `mcpServers` (`streamableHttp` remote) | **none documented** (literal `env`/`headers`; guidance only "store secrets in env vars") | no documented interpolation or `.env` loader; value-free emission **unverified** | `manual_note_required` (user-global + no documented value-free syntax) | docs.cline.bot/mcp/mcp-overview |
 | GitHub Copilot (VS Code) | `.vscode/mcp.json` (**project**) or user profile; JSON root `servers` + `inputs` | `${input:ID}` (masked prompt, stored), `${env:VAR}`, `${workspaceFolder}`, `${userHome}` | native project **`envFile`** (`"${workspaceFolder}/.env"`) + `${input:}` secure prompt; value-free | **`config_only_safe`** (project path + native `envFile`) | code.visualstudio.com/docs/agents/reference/mcp-configuration + docs.github.com copilot MCP |
 | GitHub Copilot CLI | `~/.copilot/mcp-config.json` (**user-global**; `COPILOT_HOME` override); JSON `mcpServers` | **none documented** (raw `env`/`headers`) | no documented interpolation or `.env` loader | `manual_note_required` (user-global → note only) | docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers |
-| Antigravity | `~/.gemini/config/mcp_config.json` (**user-global**, unified Antigravity 2.0 / IDE / CLI path; older docs cited `~/.gemini/antigravity/mcp_config.json` — verify on install); JSON `mcpServers`; `serverUrl` + `authProviderType` for http | **none** (docs show raw token: "Replace YOUR_GITHUB_PAT…") | no documented interpolation or `.env` loader; load secrets from shell env before editing the file | `manual_note_required` (user-global + literal paste → note only; PD-open-4 — do not emit into `~/.gemini/...`) | antigravity.google/docs/mcp + github.com/github/github-mcp-server install-antigravity.md |
-| CodeWhale | `~/.codewhale/mcp.json` default (user-global), **repo-local emit via `DEEPSEEK_MCP_CONFIG` / `mcp_config_path` file-path override** → emit `./.codewhale/mcp.json`; JSON `servers`/`mcpServers` | `${VAR}` in headers (`Bearer ${HF_TOKEN}`); `bearer_token_env_var` | value-free `${VAR}`/`bearer_token_env_var`; no native `.env` loader; repo file read only after `DEEPSEEK_MCP_CONFIG` wiring (PD6/PD7) | `manual_note_required` (**emit + mandatory wiring note**, OpenClaw-style; PD6) | github.com/Hmbown/CodeWhale docs/MCP.md + CONFIGURATION.md |
-| OpenClaw (ClawHub) | `~/.openclaw/openclaw.json` default (user-global daemon), **repo-local emit via `OPENCLAW_CONFIG_PATH` file-path override** → emit `./.openclaw/openclaw.json`; JSON `mcp.servers` | `${VAR}` (documented for openclaw.json values; `mcp.servers`-scope by extension — confirm on first wire) | value-free `${VAR}`; repo file read only after `OPENCLAW_CONFIG_PATH` wiring (PD4/PD7) | `manual_note_required` (**emit + mandatory wiring note**; PD4) | docs.openclaw.ai/cli/mcp + /gateway/configuration + /help/environment |
-| Devin CLI | **`.devin/config.json` — project scope, committed** (also `.devin/config.local.json` gitignored, `~/.config/devin/config.json` user); JSON | `${env:VAR}`, `${file:/path}` | value-free name/path references; no native `.env` loader (env var must be present) | `manual_note_required` (**native project emit, clean Bucket 2**; PD5) | docs.devin.ai/cli/extensibility/mcp/configuration |
+| Antigravity | `.agents/mcp_config.json` (**workspace**) or `~/.gemini/config/mcp_config.json` (**global**); JSON `mcpServers`; `serverUrl` + `authProviderType` for http | **none** (docs show raw token: "Replace YOUR_GITHUB_PAT…") | no documented interpolation or `.env` loader; use shell env for stdio and supported auth providers for remote servers | `manual_note_required` (workspace config exists, but no value-free credential syntax → note only) | antigravity.google/docs/mcp + github.com/github/github-mcp-server install-antigravity.md |
+| CodeWhale | `~/.codewhale/mcp.json` default (user-global), **repo-local emit via `DEEPSEEK_MCP_CONFIG` / `mcp_config_path` file-path override** → emit `./.codewhale/mcp.json`; JSON `servers`/`mcpServers` | `bearer_token_env_var`; static headers take precedence over env-backed bearer auth | value-free `bearer_token_env_var`; no native `.env` loader; repo file read only after `DEEPSEEK_MCP_CONFIG` wiring (PD6/PD7) | `manual_note_required` (**emit + mandatory wiring note**, OpenClaw-style; PD6) | github.com/Hmbown/CodeWhale docs/MCP.md + CONFIGURATION.md |
+| OpenClaw (ClawHub) | `~/.openclaw/openclaw.json` default (user-global daemon), **repo-local emit via `OPENCLAW_CONFIG_PATH` file-path override** → emit `./.openclaw/openclaw.json`; JSON `mcp.servers`, HTTP `transport: "streamable-http"` | `${VAR}` (documented for openclaw.json values; `mcp.servers`-scope by extension — confirm on first wire) | value-free `${VAR}`; repo file read only after `OPENCLAW_CONFIG_PATH` wiring (PD4/PD7) | `manual_note_required` (**emit + mandatory wiring note**; PD4) | docs.openclaw.ai/cli/mcp + /gateway/configuration + /help/environment |
+| Devin CLI | **`.devin/config.json` — project scope, committed** (also `.devin/config.local.json` gitignored, `~/.config/devin/config.json` user); JSON, HTTP `transport: "http"` | `${env:VAR}`, `${file:/path}` | value-free name/path references; no native `.env` loader (env var must be present) | `manual_note_required` (**native project emit, clean Bucket 2**; PD5) | docs.devin.ai/cli/extensibility/mcp/configuration |
 | Swival | `swival.toml` (`[mcp_servers.*]`) or `.swival/mcp.json` (`mcpServers`) — **project-local** | **none documented** (raw `env`/`headers`) | no documented interpolation or `.env` loader; value-free emission **unverified** | `manual_note_required` (project path emittable, but no documented value-free syntax → emit server sans secret + note) | swival.dev/pages/mcp.html |
 | VS Code + Codex extension | shares Codex `config.toml` (`~/.codex/config.toml` \| `.codex/config.toml`, trusted) — **same target/renderer as Codex** | none (per Codex) | `env_vars` / `bearer_token_env_var` passthrough (per Codex) | `manual_note_required` (**maps onto the Codex renderer — no separate renderer**) | developers.openai.com/codex/mcp + /codex/ide |
 | Kiro | `.kiro/settings/mcp.json` (**project**) / `~/.kiro/settings/mcp.json` (user; workspace precedence); JSON local/remote | `${VAR}` env references (docs: "use `${API_TOKEN}` instead of hardcoding") | `${VAR}` from env; no native `.env` loader | `manual_note_required` (project path emittable, value-free via `${VAR}`) | kiro.dev/docs/mcp/ + /configuration/ |
@@ -452,21 +452,21 @@ reconciled to include both real adapters.
 
 1. **`config_only_safe` — native project `.env` loader / secure prompt → emit, NO note (2):**
    Cursor-stdio (`envFile`), GitHub Copilot/VS Code (`envFile` + `${input:}`).
-2. **Native project-local, value-free `${VAR}` → emit repo file + `.rig/mcp-setup.md` note (8):**
-   Claude, Codex, OpenCode, pi, Gemini CLI, Kiro, Cursor-http, **Devin** (PD5).
+2. **Native project-local, value-free `${VAR}` → emit repo file + `.rig/mcp-setup.md` note (9):**
+   Claude, Codex, OpenCode, pi, Gemini CLI, Kiro, Cursor-http, **Devin** (PD5), VS Code + Codex
+   extension (reuses Codex).
 2b. **User-global default + file-path override + value-free syntax → emit repo file + mandatory wiring
    note (2):** **OpenClaw** (`OPENCLAW_CONFIG_PATH`, PD4), **CodeWhale** (`DEEPSEEK_MCP_CONFIG`, PD6).
    The OpenClaw/CodeWhale shape (PD7).
 3. **Emittable project-local but no documented interpolation → emit server sans secret + note (1):**
    Swival.
-4. **User-global config only, no clean override → PD-open-4 forbids emit → note only (5):** Hermes,
-   Windsurf, Cline, GitHub Copilot CLI, Antigravity (each per PD7 — see §7).
-5. **No MCP surface / shared renderer (2):** VS Code + Codex extension (reuses Codex's renderer);
-   Generic agents (no MCP renderer).
+4. **No safe repo-contained, value-free emit → note only (5):** Hermes, Windsurf, Cline, GitHub
+   Copilot CLI, Antigravity (each per PD7 — see §7).
+5. **No MCP surface (1):** Generic agents (no MCP renderer).
 
-Tiers roll up to SUP (§2a): buckets 1+2+2b+3 = **12 Tier-A hosts (wired emit)** — the sub-entry counts
-(2+8+2+1) total 13 because **Cursor spans buckets 1 (stdio) and 2 (http)**, i.e. one host, two variants;
-bucket 4 = **5 Tier-B (note-only)**; bucket 5 = **2 Tier-C (instruction-only / no MCP)**. 12+5+2 = 19.
+Tiers roll up to SUP (§2a): buckets 1+2+2b+3 = **13 Tier-A hosts (wired emit)** — the sub-entry counts
+(2+9+2+1) total 14 because **Cursor spans buckets 1 (stdio) and 2 (http)**, i.e. one host, two variants;
+bucket 4 = **5 Tier-B (note-only)**; bucket 5 = **1 Tier-C (instruction-only / no MCP)**. 13+5+1 = 19.
 
 **Literal-paste caveat (Cline, Swival, Antigravity):** official docs document no value-free mechanism,
 so their config/note cannot promise a value-free credential — the user supplies the secret directly.

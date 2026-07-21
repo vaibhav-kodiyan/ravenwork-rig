@@ -151,13 +151,13 @@ add a host only where its shape genuinely differs.
 | TP-C4.1 | **1 — `config_only_safe`**: Cursor-stdio | emits `.cursor/mcp.json` with `envFile`; **no** manual note added for that host in `.rig/mcp-setup.md` |
 | TP-C4.2 | 1 — GitHub Copilot / VS Code | `.vscode/mcp.json` with `envFile` + `${input:}`; config_only_safe (no note) |
 | TP-C4.3 | **2 — value-free `${VAR}`**: Kiro, Gemini, OpenCode, pi | correct project path + `${VAR}`/`{env:VAR}` token; manual note present |
-| TP-C4.4 | **2 — Devin (net-new, PD5)** | `.devin/config.json`, `${env:VAR}`/`${file:}`, JSON read-or-init merge; manual note |
-| TP-C4.5 | **2b — OpenClaw (net-new, PD4)** | `./.openclaw/openclaw.json` value-free `${VAR}` **+ mandatory** `export OPENCLAW_CONFIG_PATH=./.openclaw/openclaw.json` in the note |
-| TP-C4.6 | **2b — CodeWhale (reclassified, PD6)** | `./.codewhale/mcp.json` + **mandatory** `export DEEPSEEK_MCP_CONFIG=./.codewhale/mcp.json` in the note |
+| TP-C4.4 | **2 — Devin (net-new, PD5)** | `.devin/config.json`, HTTP `transport: "http"`, `${env:VAR}`/`${file:}`, JSON read-or-init merge; manual note |
+| TP-C4.5 | **2b — OpenClaw (net-new, PD4)** | `./.openclaw/openclaw.json`, HTTP `transport: "streamable-http"`, value-free `${VAR}` **+ mandatory** `export OPENCLAW_CONFIG_PATH=./.openclaw/openclaw.json` in the note |
+| TP-C4.6 | **2b — CodeWhale (reclassified, PD6)** | `./.codewhale/mcp.json` uses `bearer_token_env_var` with no static `Authorization` header + **mandatory** `export DEEPSEEK_MCP_CONFIG=./.codewhale/mcp.json` in the note |
 | TP-C4.7 | **3 — Swival** | project-local config emitted **without a secret** + note (no documented interpolation) |
-| TP-C4.8 | **4 — Tier-B note-only** (Hermes, Windsurf, Cline, Copilot-CLI, Antigravity) | **no** MCP config file emitted for the host; a named note **is** present in `.rig/mcp-setup.md` |
+| TP-C4.8 | **4 — Tier-B note-only** (Hermes, Windsurf, Cline, Copilot-CLI, Antigravity) | **no** MCP config file emitted for the host; a named note **is** present in `.rig/mcp-setup.md`; Antigravity names workspace `.agents/mcp_config.json` and global `~/.gemini/config/mcp_config.json` paths |
 | TP-C4.9 | **5 — Generic (Tier-C)** | no renderer output; exactly **one** acknowledgment line in `.rig/mcp-setup.md` (PD-open-6) |
-| TP-C4.10 | **5 — VS Code + Codex ext** | reuses the Codex renderer/target; **no** separate config file |
+| TP-C4.10 | **2 — VS Code + Codex ext (Tier A)** | reuses the Codex renderer/target; **no** separate config file |
 | TP-C4.11 | `credential_safety` drift guard (PD2b) | each host's emitted output matches its declared class (safe ⇒ loader + no note; manual ⇒ note) |
 
 **Non-destructive merge (PD2d) → `basic-merge.test.js`**

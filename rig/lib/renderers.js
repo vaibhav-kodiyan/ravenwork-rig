@@ -150,14 +150,20 @@ function renderKiro(target, server, variant) {
 
 function renderDevin(target, server, variant) {
   const file = HOST_FILES.devin;
-  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = genericEntry(variant, '${env:%s}'); });
+  const entry = variant.transport === 'http'
+    ? { transport: 'http', url: variant.url, headers: authHeader('${env:%s}', variant) }
+    : genericEntry(variant, '${env:%s}');
+  jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
   return { file, serverName: server.name };
 }
 
 function renderOpenclaw(target, server, variant) {
   const file = HOST_FILES.openclaw;
+  const entry = variant.transport === 'http'
+    ? { transport: 'streamable-http', url: variant.url, headers: authHeader('${%s}', variant) }
+    : genericEntry(variant, '${%s}');
   jsonFile(target, file, (obj) => {
-    ((obj.mcp ??= {}).servers ??= {})[server.name] = genericEntry(variant, '${%s}');
+    ((obj.mcp ??= {}).servers ??= {})[server.name] = entry;
   });
   return { file, serverName: server.name };
 }
@@ -165,7 +171,7 @@ function renderOpenclaw(target, server, variant) {
 function renderCodewhale(target, server, variant) {
   const file = HOST_FILES.codewhale;
   const entry = variant.transport === 'http'
-    ? { url: variant.url, bearer_token_env_var: variant.credentials[0], headers: authHeader('${%s}', variant) }
+    ? { url: variant.url, bearer_token_env_var: variant.credentials[0] }
     : { command: variant.command, args: variant.args, env: envMap('${%s}', variant) };
   jsonFile(target, file, (obj) => { (obj.mcpServers ??= {})[server.name] = entry; });
   return { file, serverName: server.name };
