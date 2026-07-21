@@ -87,6 +87,17 @@ test('TP-C4.4 Devin emits project config with value-free env references and a no
   });
 });
 
+test('TP-C4.4b Devin HTTP emits the documented transport field', () => {
+  withRepo((target) => {
+    materializeOne(target, 'devin', httpOnly);
+
+    const entry = JSON.parse(read(target, '.devin/config.json')).mcpServers['example-db'];
+    assert.equal(entry.transport, 'http');
+    assert.equal(entry.type, undefined, 'Devin raw config does not use the generic type alias');
+    assert.equal(entry.headers.Authorization, 'Bearer ${env:EXAMPLE_DB_TOKEN}');
+  });
+});
+
 test('TP-C4.5 OpenClaw emits repo-local config and mandatory OPENCLAW_CONFIG_PATH note', () => {
   withRepo((target) => {
     materializeOne(target, 'openclaw', stdioOnly);
@@ -97,11 +108,24 @@ test('TP-C4.5 OpenClaw emits repo-local config and mandatory OPENCLAW_CONFIG_PAT
   });
 });
 
+test('TP-C4.5b OpenClaw HTTP emits the canonical streamable transport field', () => {
+  withRepo((target) => {
+    materializeOne(target, 'openclaw', httpOnly);
+
+    const entry = JSON.parse(read(target, '.openclaw/openclaw.json')).mcp.servers['example-db'];
+    assert.equal(entry.transport, 'streamable-http');
+    assert.equal(entry.type, undefined, 'OpenClaw raw config does not rely on a CLI-normalized alias');
+    assert.equal(entry.headers.Authorization, 'Bearer ${EXAMPLE_DB_TOKEN}');
+  });
+});
+
 test('TP-C4.6 CodeWhale emits repo-local config and mandatory DEEPSEEK_MCP_CONFIG note', () => {
   withRepo((target) => {
     materializeOne(target, 'codewhale', httpOnly);
 
-    assert.match(read(target, '.codewhale/mcp.json'), /\$\{EXAMPLE_DB_TOKEN\}|bearer_token_env_var/, 'CodeWhale config is value-free');
+    const entry = JSON.parse(read(target, '.codewhale/mcp.json')).mcpServers['example-db'];
+    assert.equal(entry.bearer_token_env_var, 'EXAMPLE_DB_TOKEN', 'CodeWhale reads the bearer token from the named env var');
+    assert.equal(entry.headers?.Authorization, undefined, 'CodeWhale does not shadow env-backed bearer auth with a static header');
     assert.match(note(target), /export DEEPSEEK_MCP_CONFIG=\.\/\.codewhale\/mcp\.json/, 'CodeWhale wiring export is documented');
     assertNoLiteralSecret(target);
   });
@@ -125,7 +149,7 @@ test('TP-C4.8 Tier-B note-only hosts emit no MCP config file', () => {
     ['windsurf', ['.windsurf/mcp_config.json', '.codeium/mcp_config.json']],
     ['cline', ['.cline/mcp.json']],
     ['copilot-cli', ['.copilot/mcp-config.json']],
-    ['antigravity', ['.gemini/antigravity/mcp_config.json']],
+    ['antigravity', ['.agents/mcp_config.json', '.gemini/antigravity/mcp_config.json', '.gemini/config/mcp_config.json']],
   ]) {
     withRepo((target) => {
       materializeOne(target, host, stdioOnly);

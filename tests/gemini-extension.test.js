@@ -21,6 +21,7 @@ const VERSIONED_MANIFESTS = [
   '.claude-plugin/plugin.json',
   '.codex-plugin/plugin.json',
   '.github/plugin/plugin.json',
+  'antigravity-plugin/plugin.json',
 ];
 // Gemini auto-discovers these by directory; the manifest is only useful if they exist.
 const REUSED_COMMANDS = ['commands/rig.toml', 'commands/rig-review.toml'];

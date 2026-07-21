@@ -1,0 +1,13 @@
+{
+  "name": "rig",
+  "version": "4.8.4",
+  "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
+  "author": {
+    "name": "Vaibhav Kodiyan",
+    "url": "https://github.com/vaibhav-kodiyan"
+  },
+  "homepage": "https://github.com/vaibhav-kodiyan/agentic-harness-demo",
+  "repository": "https://github.com/vaibhav-kodiyan/agentic-harness-demo",
+  "license": "MIT",
+  "keywords": ["yagni", "minimalism", "code-review", "productivity"]
+}

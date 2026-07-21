@@ -79,6 +79,14 @@ test('Tier 1 bootstrap configures every instruction host in a fresh repository',
       assert.equal(codex, shared, `Codex ${skill}`);
     }
 
+    for (const name of ['rig', 'rig-review', 'rig-audit', 'rig-debt', 'rig-gain', 'rig-help']) {
+      assert.equal(
+        read(target, `.agents/workflows/${name}.md`),
+        read(root, `.agents/workflows/${name}.md`),
+        `Antigravity workflow ${name}`,
+      );
+    }
+
     assert.match(read(target, 'CLAUDE.md'), /^# Existing Claude guidance$/m);
     const entrypoints = [
       'CLAUDE.md',
@@ -143,6 +151,30 @@ test('Tier 1 bootstrap configures every instruction host in a fresh repository',
     assert.doesNotMatch(body, /(?:API_KEY|BEGIN (?:RSA |OPENSSH )?PRIVATE KEY|(?<![a-z0-9])sk-[a-z0-9-]{10,})/i);
     assert.equal(fs.existsSync(path.join(target, '.env')), false);
     assert.equal(fs.existsSync(path.join(target, '.env.example')), false);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('Tier 1 bootstrap --hosts antigravity installs the co-read tree via payload.js', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-ag-'));
+
+  try {
+    execFileSync('sh', [
+      path.join(root, 'rig', 'bootstrap.sh'),
+      '--tier', '1',
+      '--target', target,
+      '--hosts', 'antigravity',
+    ]);
+
+    assert.ok(fs.existsSync(path.join(target, '.agents/skills/rig-implementation/SKILL.md')));
+    assert.ok(fs.existsSync(path.join(target, '.agents/rules/rig.md')));
+    assert.ok(fs.existsSync(path.join(target, '.agents/workflows/rig.md')));
+    assert.ok(fs.existsSync(path.join(target, 'AGENTS.md')));
+    assert.ok(fs.existsSync(path.join(target, 'GEMINI.md')));
+    assert.ok(fs.existsSync(path.join(target, '.rig/skills/grilling/SKILL.md')));
+    assert.equal(fs.existsSync(path.join(target, '.claude/skills/rig-implementation/SKILL.md')), false);
+    assert.equal(fs.existsSync(path.join(target, '.cursor/rules/rig.mdc')), false);
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }

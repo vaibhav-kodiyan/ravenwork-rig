@@ -10,6 +10,9 @@ const WIRING = {
 const CAVEAT = {
   openclaw: 'Confirm on first wire that ${VAR} interpolation is honored inside mcp.servers.',
   codewhale: 'Confirm on first wire whether the mcp_config_path overlay can replace DEEPSEEK_MCP_CONFIG.',
+  // Tier B: documented project scope exists, but no value-free credential
+  // syntax is documented; stay note-only until PD7 flips.
+  antigravity: 'Edit .agents/mcp_config.json for this workspace or ~/.gemini/config/mcp_config.json globally (stdio command/args/env, or serverUrl + authProviderType). Do not commit secrets; use the shell env for stdio and a supported auth provider for remote servers.',
 };
 const LABELS = {
   claude: 'Claude',

@@ -5,9 +5,12 @@ set -eu
 SOURCE_ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 TARGET_ROOT=$(pwd)
 TIER=
+HOSTS=${RIG_HOSTS:-}
 
 usage() {
-  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY]" >&2
+  echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2]" >&2
+  echo "  Hosts may also be set via RIG_HOSTS (comma-separated). When set, install" >&2
+  echo "  delegates to rig/lib/payload.js (same gating as the Tier 2 materializer)." >&2
   exit 2
 }
 
@@ -21,6 +24,11 @@ while [ "$#" -gt 0 ]; do
     --target)
       [ "$#" -ge 2 ] || usage
       TARGET_ROOT=$2
+      shift 2
+      ;;
+    --hosts)
+      [ "$#" -ge 2 ] || usage
+      HOSTS=$2
       shift 2
       ;;
     -h|--help)
@@ -41,6 +49,19 @@ TIER=${TIER:-1}
 [ -d "$TARGET_ROOT" ] || { echo "rig: target is not a directory: $TARGET_ROOT" >&2; exit 1; }
 TARGET_ROOT=$(CDPATH= cd -- "$TARGET_ROOT" && pwd)
 [ "$SOURCE_ROOT" != "$TARGET_ROOT" ] || { echo "rig: target must differ from the Rig checkout: $SOURCE_ROOT" >&2; exit 1; }
+
+# Host selection composes the payload the same way as the Tier 2 materializer.
+if [ -n "$HOSTS" ]; then
+  echo "Installing Rig Tier 1 into $TARGET_ROOT (hosts: $HOSTS)"
+  HOSTS="$HOSTS" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
+const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));
+const hosts = process.env.HOSTS.split(',').map((h) => h.trim()).filter(Boolean);
+runPayload(process.env.TARGET_ROOT, hosts);
+for (const host of hosts) console.log('  host:', host);
+EOF
+  echo "Rig Tier 1 installed for selected hosts via payload.js."
+  exit 0
+fi
 
 install_markdown() {
   source=$1
@@ -90,6 +111,13 @@ install_markdown .agents/skills/rig-tdd/SKILL.md .agents/skills/rig-tdd/SKILL.md
 install_markdown .agents/skills/rig-debugging/SKILL.md .agents/skills/rig-debugging/SKILL.md
 install_markdown .agents/skills/rig-code-review/SKILL.md .agents/skills/rig-code-review/SKILL.md
 
+install_markdown .agents/workflows/rig.md .agents/workflows/rig.md
+install_markdown .agents/workflows/rig-review.md .agents/workflows/rig-review.md
+install_markdown .agents/workflows/rig-audit.md .agents/workflows/rig-audit.md
+install_markdown .agents/workflows/rig-debt.md .agents/workflows/rig-debt.md
+install_markdown .agents/workflows/rig-gain.md .agents/workflows/rig-gain.md
+install_markdown .agents/workflows/rig-help.md .agents/workflows/rig-help.md
+
 ensure_line CLAUDE.md 'Before acting, read `.rig/routing.md` and route this task through its skill table.'
 install_markdown rig/tier-1/adapters/cursor.mdc .cursor/rules/rig.mdc
 install_markdown rig/tier-1/adapters/windsurf.md .windsurf/rules/rig.md
@@ -100,4 +128,4 @@ ensure_line AGENTS.md 'Before acting, read `.rig/routing.md` and route this task
 ensure_line GEMINI.md 'Before acting, read `.rig/routing.md` and route this task through its skill table.'
 ensure_line .github/copilot-instructions.md 'Before acting, read `.rig/routing.md` and route this task through its skill table.'
 
-echo "Rig Tier 1 installed: shared router, 7 native Claude/Codex skills, and instruction adapters."
+echo "Rig Tier 1 installed: shared router, 7 native Claude/Codex skills, Antigravity workflows, and instruction adapters."
