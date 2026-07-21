@@ -84,6 +84,83 @@ Instala Rig como plugin nativo de Hermes (`plugin.yaml`): inyecta el modo
 activo vía `pre_llm_call`, registra el cambio de modo `/rig` y expone las
 skills como `rig:<skill>`.
 
+## Instalar Tier 2 (MCP)
+
+Tier 2 "Basic" agrega una capacidad sobre Tier 1: un **configurador de MCP
+multi-host con credenciales**. Declara un servidor MCP y sus slots de credencial
+una vez, y Rig emite la config correcta para cada host que seleccionaste, escribe
+`.env.example`, agrega `.env` al gitignore e instala un guard de secretos para
+que ninguna clave llegue a git. Sigue sin iniciar procesos y sin almacenar
+valores de secretos.
+
+```sh
+node rig/materialize.js --target /path/to/repository --manifest rig.config.json
+```
+
+La desinstalación elimina solo los archivos y entradas MCP que Rig posee:
+
+```sh
+node rig/materialize.js --target /path/to/repository --uninstall
+```
+
+### Manifiesto
+
+`rig.config.json` selecciona hosts y declara servidores MCP. Las credenciales
+son **solo nombres de variables de entorno**, nunca valores; el validador
+rechaza cualquier cosa con forma de clave.
+
+```json
+{
+  "hosts": ["claude", "cursor", "codex"],
+  "mcp_servers": [
+    {
+      "name": "app-db",
+      "variants": [
+        {
+          "id": "stdio",
+          "transport": "stdio",
+          "credential_safety": "manual_note_required",
+          "command": "npx",
+          "args": ["-y", "@example/db-mcp"],
+          "credentials": ["APP_DB_TOKEN"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Para un servidor remoto usa `"transport": "http"` con `"url"` en vez de
+`command`/`args`.
+
+### Comportamiento MCP por host
+
+Rig emite un archivo de config MCP nativo para cada host que soporta uno, y una
+nota manual para el resto. Cursor y GitHub Copilot cargan el secreto desde
+`.env` / inputs por sí solos; los demás hosts que emiten también imprimen una
+nota para cablear la variable de entorno.
+
+| Host | Archivo MCP emitido |
+|---|---|
+| Claude Code | `.mcp.json` |
+| Cursor | `.cursor/mcp.json` |
+| Codex / VS Code Codex | `.codex/config.toml` |
+| GitHub Copilot | `.vscode/mcp.json` |
+| OpenCode | `opencode.json` |
+| pi | `.omp/mcp.json` |
+| Gemini CLI | `.gemini/settings.json` |
+| Kiro | `.kiro/settings/mcp.json` |
+| Devin | `.devin/config.json` |
+| OpenClaw | `.openclaw/openclaw.json` |
+| CodeWhale | `.codewhale/mcp.json` |
+| Swival | `.swival/mcp.json` |
+| Windsurf, Cline, Hermes, Copilot CLI, Antigravity | solo nota — sin archivo MCP nativo |
+| `generic` | no soportado para MCP |
+
+La sintaxis de token y la mecánica de credenciales por host están documentadas
+en `docs/agent-portability.md` y
+`project-dev-docs/tier-2-design-docs/basic/basic-design.md`.
+
 ## Columna vertebral de curaduría
 
 | Fase | Owner de Rig |
@@ -106,7 +183,7 @@ defecto. No tiene motor de sincronización, runtime, claves ni manejo de `.env`.
 `--hosts` / `RIG_HOSTS` opcionales reutilizan el filtro de payload de Tier 2
 (`rig/lib/payload.js`) para que una instalación estrecha coincida con el
 materializer; sin ese flag, la lista fija completa sigue siendo el oráculo. El
-layout compartido es predecible para que un futuro Tier 2 pueda describirlo sin
+layout compartido es predecible para que Tier 2 (arriba) lo describa sin
 cambiar la forma instalada.
 
 El flujo de trabajo es asesor porque Tier 1 solo entrega Markdown. Claude y
@@ -124,3 +201,10 @@ La prueba bootstrapea un repositorio temporal limpio y verifica el payload
 compartido completo, cada adaptador de instrucciones, la preservación de los
 archivos de host existentes, el límite solo-Markdown y la ausencia de
 placeholders de secretos.
+
+Para el materializer de Tier 2 y la puerta completa de CI (copias de reglas,
+pines de versión y la suite Node completa), ejecuta:
+
+```sh
+npm test
+```
