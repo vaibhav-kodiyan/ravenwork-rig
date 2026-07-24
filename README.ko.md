@@ -38,6 +38,8 @@ sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,co
 # 또는: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+호스트 선택에는 `PATH`에 `node`가 필요하다. 기본 전체 설치는 POSIX `sh`만 사용한다.
+
 Tier 1은 다음 호스트 진입점에 같은 지시문 세트를 설치한다:
 
 - Claude Code는 `.claude/skills/`에 프로젝트 스킬을 받고 `CLAUDE.md`에

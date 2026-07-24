@@ -14,11 +14,14 @@ Tier 1 supports the repository's static agent-host entrypoints through
 - `skills/rig/SKILL.md` is the unchanged Rig source component.
 - `.claude/skills/` and `.agents/skills/` are install targets for native Claude
   and Codex discovery; their payloads must stay identical.
-- `rig/bootstrap.sh` is a fixed copy list, not a manifest or materializer.
+- `rig/bootstrap.sh` is a fixed copy list by default. Optional `--hosts` /
+  `RIG_HOSTS` delegates to `rig/lib/payload.js` and requires `node` on `PATH`.
 - `tests/rig-bootstrap.test.js` proves the fresh-repo multi-host install.
 
-Tier 1 must remain markdown-only in installed repositories: no runtime, secrets,
-manifest parser, sync engine, or generated `.env` files.
+Tier 1 must remain markdown-only in installed repositories: no installed
+runtime, secrets, sync engine, or generated `.env` files. The host-filtered
+installer path may use the repo-local payload manifest at install time, but it
+must still emit only markdown/instruction files into the target repository.
 
 ## Checks
 

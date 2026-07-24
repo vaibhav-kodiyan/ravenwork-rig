@@ -20,8 +20,9 @@ sh rig/bootstrap.sh --tier 1 --target /path/to/repo --hosts antigravity,codex
 ```
 
 When `--hosts` / `RIG_HOSTS` is set, bootstrap delegates to `rig/lib/payload.js`
-instead of the fixed full-install list. Without host selection, Tier 1 stays a
-dumb full copy (no runtime, keys, or `.env` behavior).
+instead of the fixed full-install list and requires `node` on `PATH`. Without
+host selection, Tier 1 stays a dumb full copy (no installed runtime, keys, or
+`.env` behavior).
 
 Every Rig adapter reads `.rig/routing.md`. See the host entrypoint table in
 `README.md` for the installed paths.

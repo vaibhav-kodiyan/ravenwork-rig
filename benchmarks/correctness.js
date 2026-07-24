@@ -10,6 +10,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const EXEC_TIMEOUT_MS = Number(process.env.RIG_CORRECTNESS_TIMEOUT_MS) || 60_000;
 
 // Extract fenced code blocks, tagged by language.
 function extractBlocks(text) {
@@ -35,7 +36,7 @@ function identifyTask(task) {
 // Run a command, return { ok, stderr }.
 function exec(cmd, opts = {}) {
   try {
-    execSync(cmd, { timeout: 30_000, encoding: 'utf8', stdio: 'pipe', ...opts });
+    execSync(cmd, { timeout: EXEC_TIMEOUT_MS, encoding: 'utf8', stdio: 'pipe', ...opts });
     return { ok: true, stderr: '' };
   } catch (e) {
     return { ok: false, stderr: (e.stderr || e.message || '').slice(0, 500) };

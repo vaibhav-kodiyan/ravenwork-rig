@@ -14,8 +14,9 @@ function uninstall(target) {
 
   const hook = path.join(target, '.git', 'hooks', 'pre-commit');
   const chained = path.join(target, '.git', 'hooks', 'pre-commit.rig-chained');
-  if (fs.existsSync(chained)) fs.renameSync(chained, hook);
-  else if (fs.existsSync(hook) && fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim')) fs.rmSync(hook, { force: true });
+  const hasRigShim = fs.existsSync(hook) && fs.readFileSync(hook, 'utf8').includes('Rig secret guard shim');
+  if (fs.existsSync(chained) && (!fs.existsSync(hook) || hasRigShim)) fs.renameSync(chained, hook);
+  else if (hasRigShim) fs.rmSync(hook, { force: true });
 
   for (const rel of ['.rig/hooks', '.rig']) {
     const dir = path.join(target, rel);

@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { runPayload } = require('../rig/lib/payload');
 
 const root = path.join(__dirname, '..');
 const pointer = 'Before acting, read `.rig/routing.md` and route this task through its skill table.';
@@ -21,6 +22,19 @@ const sharedSkills = [
 
 function read(target, relativePath) {
   return fs.readFileSync(path.join(target, relativePath), 'utf8');
+}
+
+function tree(target) {
+  const files = {};
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(file);
+      else files[path.relative(target, file)] = fs.readFileSync(file, 'utf8');
+    }
+  };
+  walk(target);
+  return files;
 }
 
 function backtickedRigPaths(text) {
@@ -156,6 +170,21 @@ test('Tier 1 bootstrap configures every instruction host in a fresh repository',
   }
 });
 
+test('Tier 1 default bootstrap stays in sync with the canonical payload manifest', () => {
+  const viaShell = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-shell-'));
+  const viaPayload = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-payload-'));
+
+  try {
+    execFileSync('sh', [path.join(root, 'rig', 'bootstrap.sh'), '--tier', '1', '--target', viaShell]);
+    runPayload(viaPayload, []);
+
+    assert.deepEqual(tree(viaShell), tree(viaPayload));
+  } finally {
+    fs.rmSync(viaShell, { recursive: true, force: true });
+    fs.rmSync(viaPayload, { recursive: true, force: true });
+  }
+});
+
 test('Tier 1 bootstrap --hosts antigravity installs the co-read tree via payload.js', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-ag-'));
 
@@ -177,5 +206,34 @@ test('Tier 1 bootstrap --hosts antigravity installs the co-read tree via payload
     assert.equal(fs.existsSync(path.join(target, '.cursor/rules/rig.mdc')), false);
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('Tier 1 --hosts exits with a clear node message instead of stranding the user', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-tier-1-nonode-'));
+  // Sandbox PATH holds only what the script needs before the node check (dirname);
+  // node is deliberately absent so the preflight guard fires.
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'rig-nonode-bin-'));
+  const dirnameBin = execFileSync('sh', ['-c', 'command -v dirname']).toString().trim();
+  fs.symlinkSync(dirnameBin, path.join(bin, 'dirname'));
+
+  try {
+    assert.throws(
+      () => execFileSync('/bin/sh', [
+        path.join(root, 'rig', 'bootstrap.sh'),
+        '--tier', '1',
+        '--target', target,
+        '--hosts', 'claude',
+      ], { env: { PATH: bin }, stdio: 'pipe' }),
+      (err) => {
+        assert.equal(err.status, 1);
+        assert.match(String(err.stderr), /node/);
+        return true;
+      },
+    );
+    assert.equal(fs.existsSync(path.join(target, '.rig')), false, 'no partial install left behind');
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+    fs.rmSync(bin, { recursive: true, force: true });
   }
 });

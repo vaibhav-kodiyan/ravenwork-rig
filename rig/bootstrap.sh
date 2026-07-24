@@ -10,7 +10,7 @@ HOSTS=${RIG_HOSTS:-}
 usage() {
   echo "usage: sh rig/bootstrap.sh [--tier 1] [--target REPOSITORY] [--hosts host1,host2]" >&2
   echo "  Hosts may also be set via RIG_HOSTS (comma-separated). When set, install" >&2
-  echo "  delegates to rig/lib/payload.js (same gating as the Tier 2 materializer)." >&2
+  echo "  delegates to rig/lib/payload.js and requires 'node' on PATH." >&2
   exit 2
 }
 
@@ -52,6 +52,10 @@ TARGET_ROOT=$(CDPATH= cd -- "$TARGET_ROOT" && pwd)
 
 # Host selection composes the payload the same way as the Tier 2 materializer.
 if [ -n "$HOSTS" ]; then
+  command -v node >/dev/null 2>&1 || {
+    echo "rig: --hosts / RIG_HOSTS needs 'node' on PATH. Install Node.js, or omit --hosts to run the full POSIX-sh install." >&2
+    exit 1
+  }
   echo "Installing Rig Tier 1 into $TARGET_ROOT (hosts: $HOSTS)"
   HOSTS="$HOSTS" TARGET_ROOT="$TARGET_ROOT" SOURCE_ROOT="$SOURCE_ROOT" node <<'EOF'
 const { runPayload } = require(require('node:path').join(process.env.SOURCE_ROOT, 'rig', 'lib', 'payload'));

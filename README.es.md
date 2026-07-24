@@ -40,6 +40,9 @@ sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,co
 # o: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+La selección de hosts requiere `node` en el `PATH`. La instalación completa por
+defecto sigue siendo solo POSIX `sh`.
+
 Tier 1 instala el mismo conjunto de instrucciones para estos entrypoints de
 host:
 

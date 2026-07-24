@@ -38,6 +38,9 @@ sh rig/bootstrap.sh --tier 1 --target /path/to/repository --hosts antigravity,co
 # or: RIG_HOSTS=antigravity,codex sh rig/bootstrap.sh --tier 1 --target /path/to/repository
 ```
 
+Host selection requires `node` on `PATH`. The default full install remains
+POSIX `sh` only.
+
 Tier 1 installs the same instruction set for these host entrypoints:
 
 - Claude Code gets project skills in `.claude/skills/` and a router pointer in
@@ -195,11 +198,11 @@ distinctive parts of each workflow instead of concatenating source documents.
 ## Tier 1 Boundary
 
 Tier 1 is intentionally a dumb bootstrap with a fixed file list by default. It
-has no sync engine, runtime, keys, or `.env` handling. Optional `--hosts` /
-`RIG_HOSTS` reuses the Tier 2 payload filter (`rig/lib/payload.js`) so a narrow
-install matches the materializer; without that flag the full fixed list remains
-the oracle. The shared layout is predictable so Tier 2 (above) describes it
-without changing the installed shape.
+has no sync engine, installed runtime, keys, or `.env` handling. Optional
+`--hosts` / `RIG_HOSTS` reuses the Tier 2 payload filter (`rig/lib/payload.js`)
+at install time so a narrow install matches the materializer; without that flag
+the full fixed list remains the oracle. The shared layout is predictable so
+Tier 2 (above) describes it without changing the installed shape.
 
 The workflow is advisory because Tier 1 ships markdown only. Claude and other
 hook-capable hosts can provide real tool-boundary enforcement in a later tier;

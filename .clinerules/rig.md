@@ -15,8 +15,10 @@ skill inside Rig's broader workflow. Do not treat every task as only a
 
 ## Project Context
 
-- Tier 1 is the markdown-only bootstrap: fixed file list, no manifest parser,
-  no runtime, no keys, no `.env` handling.
+- Tier 1 is the markdown-only bootstrap: fixed file list by default, no
+  installed runtime, no keys, no `.env` handling. Optional `--hosts` /
+  `RIG_HOSTS` may use the repo-local payload manifest at install time and
+  requires `node` on `PATH`.
 - Tier 2 Basic is the credentialed multi-host MCP configurator. Its active docs
   live in `project-dev-docs/tier-2-design-docs/basic/`.
 - Tier 2 Basic targets the full Rig adapter matrix for deliverability, but

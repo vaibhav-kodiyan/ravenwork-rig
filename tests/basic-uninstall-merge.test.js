@@ -49,3 +49,23 @@ test('TP-C7.2 uninstall is safe on a repo where Basic was never installed', () =
     assert.equal(fs.readFileSync(path.join(target, '.env'), 'utf8'), 'EXAMPLE_DB_TOKEN=do-not-delete\n');
   });
 });
+
+test('TP-C7.3 uninstall does not overwrite a user-replaced pre-commit hook', () => {
+  withRepo((target) => {
+    initRepo(target);
+    const hookDir = path.join(target, '.git', 'hooks');
+    const hook = path.join(hookDir, 'pre-commit');
+    const chained = path.join(hookDir, 'pre-commit.rig-chained');
+    const original = '#!/bin/sh\necho "original hook"\n';
+    const replacement = '#!/bin/sh\necho "replacement hook"\n';
+
+    fs.writeFileSync(hook, original, { mode: 0o755 });
+    materialize(target, { hosts: ['claude'], mcp_servers: [exampleServer] });
+    fs.writeFileSync(hook, replacement, { mode: 0o755 });
+
+    uninstall(target);
+
+    assert.equal(fs.readFileSync(hook, 'utf8'), replacement, 'current user hook is preserved');
+    assert.equal(fs.readFileSync(chained, 'utf8'), original, 'chained backup remains available');
+  });
+});
